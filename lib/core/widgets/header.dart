@@ -1,4 +1,6 @@
+import 'package:btl_music_app/core/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ProfileHeader extends StatelessWidget {
   final String title;
@@ -61,9 +63,10 @@ class ProfileHeader extends StatelessWidget {
 
               IconButton(
                 icon: const Icon(Icons.search),
-                onPressed: () {
+                onPressed: () async {
                   // Navigator.pushNamed(context, '/search');
-                  Navigator.pushNamed(context, '/search');
+                  // Navigator.pushNamed(context, '/search');
+                  await context.read<AuthUserProvider>().logout();
                 },
               ),
             ],
