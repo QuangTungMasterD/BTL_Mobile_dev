@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "696597372697",
+    "project_id": "btl-music-app-flutter",
+    "storage_bucket": "btl-music-app-flutter.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:696597372697:android:69a31c724848284182af88",
+        "android_client_info": {
+          "package_name": "com.example.btl_music_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "696597372697-9j515h8ftd288ma3li5cjnbnoro3nch6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCtHS4jJedwUhD8QZVOEQU-pA3swtg1fs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "696597372697-9j515h8ftd288ma3li5cjnbnoro3nch6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
