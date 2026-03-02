@@ -67,6 +67,7 @@ class ProfileHeader extends StatelessWidget {
                   // Navigator.pushNamed(context, '/search');
                   // Navigator.pushNamed(context, '/search');
                   await context.read<AuthUserProvider>().logout();
+                  Navigator.pushReplacementNamed(context, '/login');
                 },
               ),
             ],

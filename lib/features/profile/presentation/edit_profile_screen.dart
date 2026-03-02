@@ -1,5 +1,7 @@
+import 'package:btl_music_app/core/providers/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -9,15 +11,111 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  String displayName = "gp.music.tranquangtung2606";
-  String userId = "42319406";
-  String bio = "";
-  DateTime birthday = DateTime(1970, 1, 1);
-  String gender = "Khác";
+  bool _isLoading = true;
+  bool _isSaving = false;
 
-  String fullName = "";
-  String phone = "";
-  String email = "";
+  late TextEditingController _displayNameController;
+  late TextEditingController _fullNameController;
+  late TextEditingController _phoneController;
+  late TextEditingController _bioController;
+
+  DateTime? _birthday;
+  String _gender = "Khác";
+
+  @override
+  void initState() {
+    super.initState();
+    _displayNameController = TextEditingController();
+    _fullNameController = TextEditingController();
+    _phoneController = TextEditingController();
+    _bioController = TextEditingController();
+
+    // Load dữ liệu sau khi widget build xong
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadUserData();
+    });
+  }
+
+  Future<void> _loadUserData() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final user = userProvider.user;
+
+    if (user != null) {
+      setState(() {
+        _displayNameController.text = user.displayName;
+        _fullNameController.text = user.fullName;
+        _phoneController.text = user.phone;
+        _bioController.text = user.bio;
+        _birthday = user.birthday;
+        _gender = user.gender ? "Nam" : "Nữ";
+        _isLoading = false;
+      });
+    } else {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Không tìm thấy thông tin người dùng")),
+      );
+    }
+  }
+
+  Future<void> _saveChanges() async {
+    if (_displayNameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Tên hiển thị không được để trống")),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final currentUser = userProvider.user;
+
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Không tìm thấy thông tin user")),
+      );
+      setState(() => _isSaving = false);
+      return;
+    }
+
+    try {
+      final updatedUser = currentUser.copyWith(
+        displayName: _displayNameController.text.trim(),
+        fullName: _fullNameController.text.trim(),
+        phone: _phoneController.text.trim(),
+        bio: _bioController.text.trim(),
+        birthday: _birthday,
+        gender: _gender == "Nam", // true = Nam
+      );
+
+      await userProvider.updateProfile(updatedUser);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Cập nhật hồ sơ thành công!"),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      Navigator.pop(context); // Quay về ProfileScreen
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Lỗi khi lưu: $e")),
+      );
+    }
+
+    setState(() => _isSaving = false);
+  }
+
+  @override
+  void dispose() {
+    _displayNameController.dispose();
+    _fullNameController.dispose();
+    _phoneController.dispose();
+    _bioController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,60 +124,69 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         title: const Text("Thông tin cá nhân"),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _buildAvatar(),
-          const SizedBox(height: 30),
-          _sectionTitle("Giới thiệu về bạn"),
-          const SizedBox(height: 10),
-          _buildInfoCard([
-            _buildItem("Tên hiển thị", displayName, () {
-              _showEditDialog("Tên hiển thị", displayName, (value) {
-                setState(() => displayName = value);
-              });
-            }),
-            _buildItem("ID", userId, null),
-            _buildItem("Tiểu sử", bio.isEmpty ? "Thêm tiểu sử" : bio, () {
-              _showEditDialog("Tiểu sử", bio, (value) {
-                setState(() => bio = value);
-              });
-            }),
-            _buildItem(
-                "Sinh nhật", DateFormat("dd/MM/yyyy").format(birthday), () {
-              _pickDate();
-            }),
-            _buildItem("Giới tính", gender, () {
-              _showGenderSheet();
-            }),
-          ]),
-          const SizedBox(height: 25),
-          _sectionTitle("Thông tin tài khoản"),
-          const SizedBox(height: 10),
-          _buildInfoCard([
-            _buildItem("Tên đầy đủ", fullName.isEmpty ? "Thêm" : fullName,
-                () {
-              _showEditDialog("Tên đầy đủ", fullName, (value) {
-                setState(() => fullName = value);
-              });
-            }),
-            _buildItem("Số điện thoại", phone.isEmpty ? "Thêm" : phone, () {
-              _showEditDialog("Số điện thoại", phone, (value) {
-                setState(() => phone = value);
-              });
-            }),
-            _buildItem("Email", email.isEmpty ? "Thêm" : email, () {
-              _showEditDialog("Email", email, (value) {
-                setState(() => email = value);
-              });
-            }),
-            _buildItem("Mật khẩu", "Thêm", () {
-              _showEditDialog("Mật khẩu", "", (value) {});
-            }),
-          ]),
+        actions: [
+          if (_isSaving)
+            const Padding(
+              padding: EdgeInsets.only(right: 16),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              ),
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.save, color: Colors.blue),
+              onPressed: _isSaving ? null : _saveChanges,
+              tooltip: "Lưu thay đổi",
+            ),
         ],
       ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                _buildAvatar(),
+                const SizedBox(height: 30),
+                _sectionTitle("Giới thiệu về bạn"),
+                const SizedBox(height: 10),
+                _buildInfoCard([
+                  _buildEditableItem(
+                    title: "Tên hiển thị",
+                    controller: _displayNameController,
+                    hint: "Tên bạn muốn hiển thị",
+                  ),
+                  _buildReadonlyItem("ID", "42319406"), // ID không sửa
+                  _buildEditableItem(
+                    title: "Tiểu sử",
+                    controller: _bioController,
+                    hint: "Viết gì đó về bạn...",
+                    maxLines: 3,
+                  ),
+                  _buildDateItem("Sinh nhật", _birthday, _pickDate),
+                  _buildGenderItem(),
+                ]),
+                const SizedBox(height: 25),
+                _sectionTitle("Thông tin tài khoản"),
+                const SizedBox(height: 10),
+                _buildInfoCard([
+                  _buildEditableItem(
+                    title: "Tên đầy đủ",
+                    controller: _fullNameController,
+                    hint: "Họ và tên đầy đủ",
+                  ),
+                  _buildEditableItem(
+                    title: "Số điện thoại",
+                    controller: _phoneController,
+                    hint: "Số điện thoại của bạn",
+                    keyboardType: TextInputType.phone,
+                  ),
+                  _buildReadonlyItem("Email", Provider.of<UserProvider>(context).user?.email ?? "Chưa có"),
+                  // Không có mật khẩu nữa
+                ]),
+              ],
+            ),
     );
   }
 
@@ -90,24 +197,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           const CircleAvatar(
             radius: 50,
             backgroundColor: Colors.teal,
-            child: Text(
-              "T",
-              style: TextStyle(fontSize: 32, color: Colors.white),
+            child: Text("T", style: TextStyle(fontSize: 40, color: Colors.white)),
+          ),
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Chức năng đổi ảnh đại diện đang phát triển")),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.grey[800],
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Text("Đổi ảnh đại diện", style: TextStyle(color: Colors.white)),
             ),
           ),
-          const SizedBox(height: 10),
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.grey[800],
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Text(
-              "Đổi ảnh đại diện",
-              style: TextStyle(color: Colors.white),
-            ),
-          )
         ],
       ),
     );
@@ -116,7 +223,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget _sectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(color: Colors.white70, fontSize: 16),
+      style: const TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.bold),
     );
   }
 
@@ -130,84 +237,100 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildItem(
-      String title, String value, VoidCallback? onTap) {
+  Widget _buildEditableItem({
+    required String title,
+    required TextEditingController controller,
+    String? hint,
+    int maxLines = 1,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
     return Column(
       children: [
         ListTile(
-          title: Text(title,
-              style: const TextStyle(color: Colors.white70)),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(value,
-                  style: const TextStyle(color: Colors.white)),
-              if (onTap != null) ...[
-                const SizedBox(width: 8),
-                const Icon(Icons.arrow_forward_ios,
-                    size: 14, color: Colors.white54),
-              ]
-            ],
+          title: Text(title, style: const TextStyle(color: Colors.white70)),
+          subtitle: TextField(
+            controller: controller,
+            style: const TextStyle(color: Colors.white),
+            maxLines: maxLines,
+            keyboardType: keyboardType,
+            decoration: InputDecoration(
+              hintText: hint ?? "Chưa có",
+              hintStyle: const TextStyle(color: Colors.grey),
+              border: InputBorder.none,
+            ),
           ),
-          onTap: onTap,
         ),
-        const Divider(color: Colors.white12, height: 1)
+        const Divider(color: Colors.white12, height: 1),
       ],
     );
   }
 
-  void _showEditDialog(
-      String title, String initialValue, Function(String) onSave) {
-    TextEditingController controller =
-        TextEditingController(text: initialValue);
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: Colors.grey[900],
-        title: Text(title, style: const TextStyle(color: Colors.white)),
-        content: TextField(
-          controller: controller,
-          style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.white54),
-            ),
-          ),
+  Widget _buildReadonlyItem(String title, String value) {
+    return Column(
+      children: [
+        ListTile(
+          title: Text(title, style: const TextStyle(color: Colors.white70)),
+          trailing: Text(value, style: const TextStyle(color: Colors.white)),
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              FocusScope.of(context).unfocus();
-              Navigator.pop(context);
-            },
-            child:
-                const Text("Hủy", style: TextStyle(color: Colors.white54)),
+        const Divider(color: Colors.white12, height: 1),
+      ],
+    );
+  }
+
+  Widget _buildDateItem(String title, DateTime? date, VoidCallback onTap) {
+    final formatted = date != null ? DateFormat("dd/MM/yyyy").format(date) : "Chưa có";
+    return Column(
+      children: [
+        ListTile(
+          title: Text(title, style: const TextStyle(color: Colors.white70)),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(formatted, style: const TextStyle(color: Colors.white)),
+              const SizedBox(width: 8),
+              const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.white54),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              onSave(controller.text);
-              FocusScope.of(context).unfocus();
-              Navigator.pop(context);
-            },
-            child:
-                const Text("Lưu", style: TextStyle(color: Colors.blue)),
+          onTap: onTap,
+        ),
+        const Divider(color: Colors.white12, height: 1),
+      ],
+    );
+  }
+
+  Widget _buildGenderItem() {
+    return Column(
+      children: [
+        ListTile(
+          title: const Text("Giới tính", style: TextStyle(color: Colors.white70)),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_gender, style: const TextStyle(color: Colors.white)),
+              const SizedBox(width: 8),
+              const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.white54),
+            ],
           ),
-        ],
-      ),
+          onTap: _showGenderSheet,
+        ),
+        const Divider(color: Colors.white12, height: 1),
+      ],
     );
   }
 
   Future<void> _pickDate() async {
-    DateTime? picked = await showDatePicker(
+    final picked = await showDatePicker(
       context: context,
-      initialDate: birthday,
+      initialDate: _birthday ?? DateTime.now().subtract(const Duration(days: 365 * 20)),
       firstDate: DateTime(1950),
       lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(data: ThemeData.dark(), child: child!);
+      },
     );
 
     if (picked != null && mounted) {
-      setState(() => birthday = picked);
+      setState(() => _birthday = picked);
     }
   }
 
@@ -219,10 +342,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         mainAxisSize: MainAxisSize.min,
         children: ["Nam", "Nữ", "Khác"].map((g) {
           return ListTile(
-            title: Text(g,
-                style: const TextStyle(color: Colors.white)),
+            title: Text(g, style: const TextStyle(color: Colors.white)),
             onTap: () {
-              setState(() => gender = g);
+              setState(() => _gender = g);
               Navigator.pop(context);
             },
           );

@@ -30,5 +30,17 @@ class AppProviders {
     // ChangeNotifierProvider<PlayerProvider>(
     //   create: (_) => PlayerProvider(),
     // ),
+
+    Provider<UserService>(create: (_) => UserService()),
+
+    /// User Repository
+    Provider<UserRepository>(
+      create: (context) => UserRepository(context.read<UserService>()),
+    ),
+
+    /// User Provider
+    ChangeNotifierProvider<UserProvider>(
+      create: (context) => UserProvider(context.read<UserRepository>()),
+    ),
   ];
 }
