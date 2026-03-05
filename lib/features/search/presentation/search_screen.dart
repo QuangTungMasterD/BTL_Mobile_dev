@@ -60,12 +60,11 @@ class _SearchLandingScreenState extends State<SearchLandingScreen> {
           textCapitalization: TextCapitalization.sentences,
           decoration: InputDecoration(
             hintText: "Tìm kiếm bài hát, nghệ sĩ...",
+            contentPadding: EdgeInsets.only(top: 12),
             border: InputBorder.none,
-            // Thêm icon tìm kiếm ở bên phải
             suffixIcon: IconButton(
               icon: const Icon(Icons.search, color: Colors.grey),
               onPressed: () {
-                // Khi bấm icon → gọi tìm kiếm giống như Enter
                 _goToResult(_controller.text);
               },
             ),

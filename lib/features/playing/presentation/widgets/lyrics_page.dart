@@ -1,9 +1,10 @@
+import 'package:btl_music_app/features/music/data/models/song_model.dart';
 import 'package:flutter/material.dart';
 
 class LyricsPage extends StatelessWidget {
-  final String imageUrl;
+  final SongModel song;
 
-  const LyricsPage({super.key, required this.imageUrl});
+  const LyricsPage({super.key, required this.song});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +18,7 @@ class LyricsPage extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: Image.network(
-                  imageUrl,
+                  song.thumbnail,
                   width: 50,
                   height: 50,
                   fit: BoxFit.cover,
@@ -36,22 +37,22 @@ class LyricsPage extends StatelessWidget {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
-                      "Anh Thanh Niên",
+                      song.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
-                      "HuyR",
+                      song.artist,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: Colors.white70),
+                      style: const TextStyle(color: Colors.white70),
                     ),
                   ],
                 ),
@@ -62,25 +63,23 @@ class LyricsPage extends StatelessWidget {
           const SizedBox(height: 20),
 
           Expanded(
-            child: ListView(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).padding.bottom + 140,
-              ),
-              children: const [
-                Lyric("Anh thanh niên năm nay"),
-                Lyric("Đã ngót nghét ba mươi rồi"),
-                Lyric("Sáng mua năm nghìn xôi"),
-                Lyric("Tối ba nghìn trà đá"),
-                Lyric("Anh luôn luôn onl Face"),
-                Lyric("Để biết hết chuyện trên đời"),
-                Lyric("Đăng cái status bình thường"),
-                Lyric("Đăng cái status bình thường"),
-                Lyric("Đăng cái status bình thường"),
-                Lyric("Đăng cái status bình thường"),
-                Lyric("Đăng cái status bình thường"),
-                Lyric("Đăng cái status bình thường"),
-              ],
-            ),
+            child: song.lyrics != null && song.lyrics!.isNotEmpty
+                ? ListView.builder(
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).padding.bottom + 140,
+                    ),
+                    itemCount: song.lyrics!.length,
+                    itemBuilder: (context, index) {
+                      final line = song.lyrics![index];
+                      return Lyric(line.text);
+                    },
+                  )
+                : const Center(
+                    child: Text(
+                      'Chưa có lời bài hát',
+                      style: TextStyle(color: Colors.white70, fontSize: 16),
+                    ),
+                  ),
           ),
         ],
       ),

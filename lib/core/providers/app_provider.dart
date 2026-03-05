@@ -1,5 +1,6 @@
 import 'package:btl_music_app/core/providers/artist_provider.dart';
 import 'package:btl_music_app/core/providers/love_list_provider.dart';
+import 'package:btl_music_app/core/providers/notification_provider.dart';
 import 'package:btl_music_app/core/providers/play_list_provider.dart'; // ← Thêm dòng này
 import 'package:btl_music_app/core/providers/player_provider.dart';
 import 'package:btl_music_app/core/providers/song_provider.dart';
@@ -15,6 +16,11 @@ import 'package:btl_music_app/features/music/data/repo/song_repo.dart';
 import 'package:btl_music_app/features/music/data/services/artist_service.dart';
 import 'package:btl_music_app/features/library/data/services/play_list_service.dart';
 import 'package:btl_music_app/features/music/data/services/song_service.dart';
+import 'package:btl_music_app/features/notify/data/repo/notification_repo.dart';
+import 'package:btl_music_app/features/notify/data/services/notification_service.dart';
+import 'package:btl_music_app/features/playing/data/repo/player_repo.dart';
+import 'package:btl_music_app/features/playing/data/services/play_back_state_service.dart';
+import 'package:btl_music_app/features/playing/data/services/player_service.dart';
 import 'package:btl_music_app/features/profile/data/repo/user_repo.dart';
 import 'package:btl_music_app/features/profile/data/service/user_service.dart';
 import 'package:provider/provider.dart';
@@ -83,7 +89,24 @@ class AppProviders {
     /// =================================================
 
     // Player (nếu đã có)
-    ChangeNotifierProvider<PlayerProvider>(create: (_) => PlayerProvider()),
+    Provider<PlayerService>(create: (_) => PlayerService()),
+    Provider<PlaybackStateService>(create: (_) => PlaybackStateService()),
+    Provider<PlayerRepository>(
+      create: (context) => PlayerRepository(
+        context.read<PlayerService>(),
+        context.read<PlaybackStateService>(),
+      ),
+    ),
+
+    ChangeNotifierProxyProvider<SongProvider, PlayerProvider>(
+      create: (context) => PlayerProvider(
+        context.read<PlayerRepository>(),
+        context.read<SongProvider>(),
+      ),
+      update: (context, songProvider, previous) => previous!,
+    ),
+
+    /// LOVE
     Provider<LoveListService>(create: (_) => LoveListService()),
 
     Provider<LoveListRepository>(
@@ -97,6 +120,29 @@ class AppProviders {
         final userId = authProvider.user?.uid ?? '';
         if (previous?.userId != userId) {
           return LoveListProvider(context.read<LoveListRepository>(), userId);
+        }
+        return previous!;
+      },
+    ),
+
+    /// Notification
+    Provider<NotificationService>(create: (_) => NotificationService()),
+
+    Provider<NotificationRepository>(
+      create: (context) =>
+          NotificationRepository(context.read<NotificationService>()),
+    ),
+
+    ChangeNotifierProxyProvider<AuthUserProvider, NotificationProvider>(
+      create: (context) =>
+          NotificationProvider(context.read<NotificationRepository>(), ''),
+      update: (context, authProvider, previous) {
+        final userId = authProvider.user?.uid ?? '';
+        if (previous?.userId != userId) {
+          return NotificationProvider(
+            context.read<NotificationRepository>(),
+            userId,
+          );
         }
         return previous!;
       },

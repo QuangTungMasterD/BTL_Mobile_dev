@@ -38,7 +38,7 @@ class SongProvider extends ChangeNotifier {
   }
 
   // --- Top songs (nổi bật) ---
-  Future<void> loadTopSongs({int limit = 5}) async {
+  Future<void> loadTopSongs({int limit = 99}) async {
     _isLoadingTop = true;
     notifyListeners();
     try {

@@ -16,6 +16,7 @@ class SongModel {
   final List<LyricLine>? lyrics; // Lời bài hát có thời gian
   final int playCount; // Số lượt nghe
   final int likeCount; // Số lượt yêu thích
+  final String audio;
 
   SongModel({
     required this.id,
@@ -32,6 +33,7 @@ class SongModel {
     this.lyrics,
     this.playCount = 0,
     this.likeCount = 0,
+    this.audio = '',
   });
 
   // Từ JSON (Firestore hoặc API)
@@ -56,6 +58,7 @@ class SongModel {
       genre: json['genre'] as String?,
       // // mood: json['mood'] as String?,
       lyrics: lyricsList,
+      audio: json['audio'] as String? ?? 'https://drive.google.com/file/d/1GJzrgicjjD6amFSwtKiieqgLgZNnhDzk/view?usp=sharing',
       playCount: (json['playCount'] as num?)?.toInt() ?? 0,
       likeCount: (json['likeCount'] as num?)?.toInt() ?? 0,
     );
@@ -77,6 +80,7 @@ class SongModel {
       'lyrics': lyrics?.map((line) => line.toJson()).toList(),
       'playCount': playCount,
       'likeCount': likeCount,
+      audio: audio,
       // Không cần lưu id vào JSON (Firestore tự quản lý)
     };
   }

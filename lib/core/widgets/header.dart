@@ -1,4 +1,5 @@
 import 'package:btl_music_app/core/providers/auth_provider.dart';
+import 'package:btl_music_app/core/providers/notification_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -30,44 +31,40 @@ class ProfileHeader extends StatelessWidget {
           /// Icons
           Row(
             children: [
-              // IconButton(
-              //   icon: Icon(Icons.settings_outlined),
-              //   onPressed: () {
-              //     Navigator.pushNamed(context, '/settings');
-              //   },
-              // ),
-
-              /// Notification with red dot
-              Stack(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.notifications_none),
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/notify');
-                    },
-                  ),
-                  Positioned(
-                    right: 10,
-                    top: 10,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
+              // Lắng nghe unreadCount từ NotificationProvider
+              Consumer<NotificationProvider>(
+                builder: (context, notifProvider, child) {
+                  final hasUnread = notifProvider.unreadCount > 0;
+                  return Stack(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.notifications_none),
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/notify');
+                        },
                       ),
-                    ),
-                  ),
-                ],
+                      if (hasUnread)
+                        Positioned(
+                          right: 10,
+                          top: 10,
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
               ),
 
               IconButton(
                 icon: const Icon(Icons.search),
-                onPressed: () async {
-                  // Navigator.pushNamed(context, '/search');
+                onPressed: () {
                   Navigator.pushNamed(context, '/search');
-                  // await context.read<AuthUserProvider>().logout();
-                  // Navigator.pushReplacementNamed(context, '/login');
                 },
               ),
             ],

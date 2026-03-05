@@ -1,96 +1,134 @@
+// core/providers/player_provider.dart
+import 'dart:async';
+import 'package:btl_music_app/features/playing/data/repo/player_repo.dart';
+import 'package:btl_music_app/features/playing/data/services/player_service.dart';
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
-import 'package:just_audio_background/just_audio_background.dart';
-import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 import 'package:btl_music_app/features/music/data/models/song_model.dart';
+import 'package:btl_music_app/core/providers/song_provider.dart';
 
 class PlayerProvider extends ChangeNotifier {
-  final AudioPlayer _player = AudioPlayer();
-  final YoutubeExplode _yt = YoutubeExplode();
+  final PlayerRepository _repo;
+  final SongProvider _songProvider;
 
   SongModel? _currentSong;
-  List<SongModel> _playlist = [];
-  int _currentIndex = 0;
+  PlayerState _state = PlayerState.stopped;
+  Duration _position = Duration.zero;
+  Duration _duration = Duration.zero;
 
-  bool _isInitialized = false;
+  StreamSubscription<PlayerState>? _stateSub;
+  StreamSubscription<Duration>? _positionSub;
 
   SongModel? get currentSong => _currentSong;
-  bool get isPlaying => _player.playing;
-  Duration get position => _player.position;
-  Duration get duration => _player.duration ?? Duration.zero;
+  PlayerState get state => _state;
+  Duration get position => _position;
+  Duration get duration => _duration;
+  bool get isPlaying => _state == PlayerState.playing;
 
-  Stream<Duration> get positionStream => _player.positionStream;
-  Stream<PlayerState> get playerStateStream => _player.playerStateStream;
-
-  PlayerProvider() {
-    _initialize();
+  PlayerProvider(this._repo, this._songProvider) {
+    _init();
   }
 
-  Future<void> _initialize() async {
-    if (_isInitialized) return;
+  Future<void> _init() async {
+    // Lắng nghe stream từ repository
+    _stateSub = _repo.stateStream.listen((newState) {
+      _state = newState;
+      notifyListeners();
+    });
 
-    try {
-      await JustAudioBackground.init(
-      androidNotificationChannelId: 'com.btl.music.channel.audio',
-      androidNotificationChannelName: 'Music Playback',
-      // androidNotificationColor: Colors.deepPurple.value,
-      androidShowNotificationBadge: true,
-      androidStopForegroundOnPause: true,
-      // XÓA DÒNG NÀY: notificationIcon: const AndroidResource(...)
+    _positionSub = _repo.positionStream.listen((newPos) {
+      _position = newPos;
+      notifyListeners();
+    });
+
+    // Khôi phục trạng thái đã lưu
+    await _restoreState();
+  }
+
+  Future<void> _restoreState() async {
+    final saved = await _repo.loadState();
+    if (saved == null || saved['songId'] == null) return;
+
+    final songId = saved['songId'] as String;
+    final song = await _songProvider.getSongById(songId);
+    if (song != null) {
+      _currentSong = song;
+      _duration = Duration(milliseconds: saved['duration'] ?? 0);
+      _position = Duration(milliseconds: saved['position'] ?? 0);
+      final isPlaying = saved['isPlaying'] as bool? ?? false;
+      _state = isPlaying ? PlayerState.playing : PlayerState.paused;
+      _repo.setDuration(_duration);
+      if (isPlaying) {
+        _repo.play(song.audio ?? '');
+      } else {
+        _repo.stop();
+      }
+      notifyListeners();
+    } else {
+      await _repo.clearState();
+    }
+  }
+
+  Future<void> _persistState() async {
+    await _repo.saveState(
+      _currentSong?.id,
+      _state == PlayerState.playing,
+      _position.inMilliseconds,
+      _duration.inMilliseconds,
     );
-      _isInitialized = true;
-      debugPrint("JustAudioBackground init thành công");
-    } catch (e) {
-      debugPrint("Lỗi init JustAudioBackground: $e");
-    }
   }
 
-  /// Phát một bài hát từ model
+  // Người dùng chọn bài hát
   Future<void> playSong(SongModel song) async {
-    // Đảm bảo đã init trước khi phát
-    await _initialize();
-
     _currentSong = song;
-    _playlist = [song];
-    _currentIndex = 0;
-
-    await _playAudio(song.youtubeId);
+    _duration = Duration(seconds: song.duration ?? 0);
+    _position = Duration.zero;
+    _state = PlayerState.playing;
+    _repo.setDuration(_duration);
+    _repo.play(song.audio ?? ''); // chỉ cập nhật state
     notifyListeners();
+    await _persistState();
   }
 
-  // Các hàm khác giữ nguyên: playPlaylist, _playAudio, playPause, seek, next, previous...
-
-  Future<void> _playAudio(String videoId) async {
-    try {
-      final manifest = await _yt.videos.streamsClient.getManifest(videoId);
-      final audio = manifest.audioOnly.withHighestBitrate();
-
-      await _player.setAudioSource(
-        LockCachingAudioSource(
-          Uri.parse(audio.url.toString()),
-          tag: MediaItem(
-            id: videoId,
-            title: _currentSong?.title ?? 'Unknown',
-            artist: _currentSong?.artist ?? 'Unknown',
-            artUri: _currentSong?.thumbnailUrl != null
-                ? Uri.parse(_currentSong!.thumbnailUrl!)
-                : null,
-          ),
-        ),
-      );
-
-      await _player.play();
-    } catch (e) {
-      debugPrint("Lỗi stream YouTube: $e");
+  void pause() {
+    if (_state == PlayerState.playing) {
+      _repo.pause();
+      // state sẽ được cập nhật qua stream, nhưng ta cũng có thể set trực tiếp
+      _state = PlayerState.paused;
+      notifyListeners();
+      _persistState();
     }
   }
 
-  // ... các hàm playPause, seek, next, previous giữ nguyên như cũ
+  void resume() {
+    if (_state == PlayerState.paused) {
+      _repo.resume();
+      _state = PlayerState.playing;
+      notifyListeners();
+      _persistState();
+    }
+  }
+
+  void stop() {
+    _repo.stop();
+    _currentSong = null;
+    _position = Duration.zero;
+    _duration = Duration.zero;
+    notifyListeners();
+    _persistState();
+  }
+
+  Future<void> seek(Duration newPosition) async {
+    if (_currentSong == null) return;
+    _repo.seek(newPosition);
+    // position sẽ cập nhật qua stream
+    await _persistState();
+  }
 
   @override
   void dispose() {
-    _player.dispose();
-    _yt.close();
+    _stateSub?.cancel();
+    _positionSub?.cancel();
+    _repo.dispose();
     super.dispose();
   }
 }

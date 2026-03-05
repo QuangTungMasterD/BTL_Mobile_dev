@@ -1,17 +1,15 @@
+import 'package:btl_music_app/features/notify/data/models/notification_model.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
-class PlaylistItem extends StatelessWidget {
-  final String image;
-  final String title;
-  final String description;
-  final VoidCallback? onTap;
+class NotifyItem extends StatelessWidget {
+  final NotificationModel notification;
+  final VoidCallback onTap;  // Để mark read hoặc mở chi tiết
 
-  const PlaylistItem({
+  const NotifyItem({
     super.key,
-    required this.image,
-    required this.title,
-    required this.description,
-    this.onTap,
+    required this.notification,
+    required this.onTap,
   });
 
   @override
@@ -23,11 +21,11 @@ class PlaylistItem extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// Ảnh
+            // Ảnh (giữ giống ban đầu của bạn: 72x72, rounded 12, fallback icon music_note)
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.network(
-                image,
+                notification.imageUrl ?? '',
                 width: 72,
                 height: 72,
                 fit: BoxFit.cover,
@@ -35,20 +33,20 @@ class PlaylistItem extends StatelessWidget {
                   width: 72,
                   height: 72,
                   color: Colors.grey.shade800,
-                  child: const Icon(Icons.music_note),
+                  child: const Icon(Icons.music_note, color: Colors.white),
                 ),
               ),
             ),
 
             const SizedBox(width: 14),
 
-            /// Nội dung
+            // Nội dung (giữ giống ban đầu: title bold, description grey, maxLines 2)
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    notification.title,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -56,7 +54,7 @@ class PlaylistItem extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    description,
+                    '${notification.body} • ${_formatTime(notification.createdAt)}',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -66,9 +64,24 @@ class PlaylistItem extends StatelessWidget {
                 ],
               ),
             ),
+
+            // Chấm đỏ nếu chưa đọc (thêm nhỏ, không ảnh hưởng thiết kế)
+            if (!notification.isRead)
+              const Padding(
+                padding: EdgeInsets.only(left: 8, top: 4),
+                child: Icon(Icons.fiber_new, color: Colors.red, size: 20),
+              ),
           ],
         ),
       ),
     );
+  }
+
+  String _formatTime(DateTime time) {
+    final diff = DateTime.now().difference(time);
+    if (diff.inDays > 0) return "${diff.inDays} ngày";
+    if (diff.inHours > 0) return "${diff.inHours} giờ";
+    if (diff.inMinutes > 0) return "${diff.inMinutes} phút";
+    return "Vừa xong";
   }
 }
