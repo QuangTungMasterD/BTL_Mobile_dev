@@ -25,7 +25,7 @@ class SongOptionsButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: Icon(Icons.more_vert, color: iconColor ?? Colors.white70),
+      icon: iconColor != null ? Icon(Icons.more_vert, color: iconColor) : const Icon(Icons.more_vert),
       onPressed: () async {
         final dbHelper = DatabaseHelper.instance;
         final isDownloaded = await dbHelper.isSongDownloaded(songId);

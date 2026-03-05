@@ -10,6 +10,8 @@ class SongRepository {
 
   Future<SongModel?> getSongById(String id) => _service.getSongById(id);
 
+  Future<List<SongModel>> getSongsByArtistId(String id) => _service.getSongsByArtistId(id);
+
   Future<List<SongModel>> searchSongs(String query, {int limit = 20}) =>
       _service.searchSongs(query, limit: limit);
 

@@ -15,6 +15,15 @@ class SongService {
     return null;
   }
 
+  Future<List<SongModel>> getSongsByArtistId(String id) async {
+    print(id);
+    final snapshot = await _songsCollection.where('artistId', isEqualTo: id).get();
+
+    return snapshot.docs.map((doc) {
+      return SongModel.fromJson(doc.data() as Map<String, dynamic>, doc.id);
+    }).toList();
+  }
+
   // Tìm kiếm bài hát theo tên hoặc nghệ sĩ (tìm kiếm gần đúng bằng where)
   // Firestore không hỗ trợ full-text search, ta có thể dùng where với điều kiện "bắt đầu bằng"
   // và kết hợp nhiều trường. Giải pháp tốt hơn là dùng external search, nhưng tạm thời dùng cách này.

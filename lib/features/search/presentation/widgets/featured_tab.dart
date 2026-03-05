@@ -38,9 +38,6 @@ class FeaturedTab extends StatelessWidget {
               title: song.title,
               artist: song.artist,
               image: song.thumbnail,
-              onTap: () {
-                // xử lý khi bấm vào bài hát
-              },
             );
           },
         );

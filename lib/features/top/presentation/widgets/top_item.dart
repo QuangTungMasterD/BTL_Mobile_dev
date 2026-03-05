@@ -107,6 +107,7 @@ class ChartItem extends StatelessWidget {
                 title: song.title,
                 artist: song.artist,
                 image: song.thumbnail,
+                iconColor: Colors.white70,
               ),
             ),
           ],

@@ -1,8 +1,11 @@
+import 'package:btl_music_app/core/providers/artist_provider.dart';
 import 'package:btl_music_app/core/providers/song_provider.dart';
 import 'package:btl_music_app/core/widgets/bottom.dart';
 import 'package:btl_music_app/core/widgets/header.dart';
 import 'package:btl_music_app/core/widgets/mini_player.dart';
 import 'package:btl_music_app/core/widgets/song_item.dart';
+import 'package:btl_music_app/features/artist/presentation/artist_songs_screen.dart';
+import 'package:btl_music_app/features/music/data/models/artist_model.dart';
 import 'package:btl_music_app/features/music/data/models/song_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -27,7 +30,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadRecommendations() async {
     setState(() => _isLoadingRecs = true);
     final provider = context.read<SongProvider>();
-    // Ví dụ lấy đề xuất theo thể loại mặc định 'Pop'
     final songs = await provider.getRecommendationsByGenre(limit: 6);
     if (mounted) {
       setState(() {
@@ -69,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       const SizedBox(height: 20),
 
-                      /// ===== DANH SÁCH BÀI HÁT ĐỀ XUẤT =====
+                      /// ===== ĐỀ XUẤT =====
                       if (_isLoadingRecs)
                         const Center(child: CircularProgressIndicator())
                       else if (_recommendations.isEmpty)
@@ -131,19 +133,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ],
                               ),
                             ),
-                            Icon(
-                              Icons.arrow_forward_ios,
-                              size: 16,
-                            ),
+                            Icon(Icons.arrow_forward_ios, size: 16),
                           ],
                         ),
                       ),
 
                       const SizedBox(height: 30),
 
-                      /// ===== FOR YOU MIX =====
+                      /// ===== NGHỆ SĨ =====
                       const Text(
-                        "Dành riêng cho bạn",
+                        "Nghệ sĩ",
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -152,16 +151,40 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       const SizedBox(height: 16),
 
-                      SizedBox(
-                        height: 160,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: [
-                            _mixCard("SOOBIN Mix", Colors.pink),
-                            _mixCard("Bui Truong Linh Mix", Colors.blue),
-                            _mixCard("Quang Hung Mix", Colors.green),
-                          ],
-                        ),
+                      /// Lấy 3 nghệ sĩ từ ArtistProvider
+                      Consumer<ArtistProvider>(
+                        builder: (context, artistProvider, child) {
+                          final artists = artistProvider.allArtists;
+                          if (artistProvider.isLoading || artists.isEmpty) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+                          // Lấy 3 nghệ sĩ đầu tiên (hoặc random)
+                          final displayedArtists = artists.take(3).toList();
+                          return SizedBox(
+                            height: 160,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: displayedArtists.length,
+                              itemBuilder: (context, index) {
+                                final artist = displayedArtists[index];
+                                return _artistCard(
+                                  artist: artist,
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => ArtistSongsScreen(
+                                          artistId: artist.id,
+                                          artistName: artist.name,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          );
+                        },
                       ),
 
                       const SizedBox(height: 30),
@@ -173,12 +196,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: Column(
+      bottomNavigationBar: const Column(
         mainAxisSize: MainAxisSize.min,
-        children: const [
-          MiniPlayer(),
-          AppBottomNav(currentIndex: 1),
-        ],
+        children: [MiniPlayer(), AppBottomNav(currentIndex: 1)],
       ),
     );
   }
@@ -194,28 +214,53 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Text(
           text,
-          style: TextStyle(color: selected ? Colors.white : Theme.of(context).colorScheme.onSurface),
+          style: TextStyle(
+            color: selected ? Colors.white : Theme.of(context).colorScheme.onSurface,
+          ),
         ),
       ),
     );
   }
 
-  static Widget _mixCard(String title, Color color) {
-    return Container(
-      width: 140,
-      margin: const EdgeInsets.only(right: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.8),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Align(
-        alignment: Alignment.bottomLeft,
-        child: Text(
-          title,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+  Widget _artistCard({required ArtistModel artist, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 140,
+        margin: const EdgeInsets.only(right: 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          image: artist.avatar != null
+              ? DecorationImage(
+                  image: NetworkImage(artist.avatar!),
+                  fit: BoxFit.cover,
+                )
+              : null,
+          color: artist.avatar == null ? Colors.grey.shade800 : null,
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.transparent,
+                Colors.black.withOpacity(0.7),
+              ],
+            ),
+          ),
+          alignment: Alignment.bottomLeft,
+          padding: const EdgeInsets.all(12),
+          child: Text(
+            artist.name,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 16,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ),

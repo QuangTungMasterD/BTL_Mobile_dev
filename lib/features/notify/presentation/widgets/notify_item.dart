@@ -21,7 +21,6 @@ class NotifyItem extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Ảnh (giữ giống ban đầu của bạn: 72x72, rounded 12, fallback icon music_note)
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.network(
@@ -40,7 +39,6 @@ class NotifyItem extends StatelessWidget {
 
             const SizedBox(width: 14),
 
-            // Nội dung (giữ giống ban đầu: title bold, description grey, maxLines 2)
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

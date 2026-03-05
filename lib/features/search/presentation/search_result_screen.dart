@@ -1,6 +1,7 @@
 import 'package:btl_music_app/core/providers/artist_provider.dart';
 import 'package:btl_music_app/core/providers/song_provider.dart';
 import 'package:btl_music_app/core/widgets/bottom.dart';
+import 'package:btl_music_app/core/widgets/mini_player.dart';
 import 'package:btl_music_app/features/search/presentation/widgets/featured_tab.dart';
 import 'package:btl_music_app/features/search/presentation/widgets/songs_tab.dart';
 import 'package:btl_music_app/features/search/presentation/widgets/artists_tab.dart';
@@ -83,7 +84,10 @@ class _SearchResultScreenState extends State<SearchResultScreen> with SingleTick
           ArtistsTab(query: widget.query),
         ],
       ),
-      bottomNavigationBar: AppBottomNav(currentIndex: 0),
+      bottomNavigationBar: const Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [MiniPlayer(), AppBottomNav(currentIndex: 1)],
+      ),
     );
   }
 }

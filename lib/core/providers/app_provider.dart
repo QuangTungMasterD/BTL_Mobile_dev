@@ -8,6 +8,8 @@ import 'package:btl_music_app/core/providers/user_provider.dart';
 import 'package:btl_music_app/core/theme/app_colors.dart';
 import 'package:btl_music_app/features/auth/data/repo/auth_repo.dart';
 import 'package:btl_music_app/features/auth/data/service/auth_service.dart';
+import 'package:btl_music_app/features/comment/data/repo/comment_repo.dart';
+import 'package:btl_music_app/features/comment/data/services/comment_service.dart';
 import 'package:btl_music_app/features/library/data/repo/love_list_repo.dart';
 import 'package:btl_music_app/features/library/data/services/love_list_service.dart';
 import 'package:btl_music_app/features/music/data/repo/artist_repo.dart';
@@ -146,6 +148,12 @@ class AppProviders {
         }
         return previous!;
       },
+    ),
+
+    /// Commnent
+    Provider<CommentService>(create: (_) => CommentService()),
+    Provider<CommentRepository>(
+      create: (context) => CommentRepository(context.read<CommentService>()),
     ),
   ];
 }

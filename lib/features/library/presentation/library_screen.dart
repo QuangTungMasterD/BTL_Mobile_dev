@@ -2,6 +2,7 @@ import 'package:btl_music_app/core/providers/play_list_provider.dart';
 import 'package:btl_music_app/core/widgets/bottom.dart';
 import 'package:btl_music_app/core/widgets/header.dart';
 import 'package:btl_music_app/core/widgets/mini_player.dart';
+import 'package:btl_music_app/features/library/data/models/play_list_model.dart';
 import 'package:btl_music_app/features/library/presentation/download_list_screen.dart';
 import 'package:btl_music_app/features/library/presentation/love_list_screen.dart';
 import 'package:btl_music_app/features/library/presentation/song_list_screen.dart';
@@ -9,13 +10,56 @@ import 'package:btl_music_app/features/library/presentation/widgets/library_item
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class LibraryScreen extends StatelessWidget {
+enum SortOrder { newest, oldest, defaultOrder }
+
+class LibraryScreen extends StatefulWidget {
   const LibraryScreen({super.key});
+
+  @override
+  State<LibraryScreen> createState() => _LibraryScreenState();
+}
+
+class _LibraryScreenState extends State<LibraryScreen> {
+  SortOrder _sortOrder = SortOrder.defaultOrder;
+
+  void _toggleSortOrder() {
+    setState(() {
+      if (_sortOrder == SortOrder.defaultOrder) {
+        _sortOrder = SortOrder.newest;
+      } else if (_sortOrder == SortOrder.newest) {
+        _sortOrder = SortOrder.oldest;
+      } else {
+        _sortOrder = SortOrder.defaultOrder;
+      }
+    });
+  }
+
+  Object _getSortIcon() {
+    switch (_sortOrder) {
+      case SortOrder.newest:
+        return Icons.arrow_downward; // hoặc icon mũi tên xuống (mới nhất)
+      case SortOrder.oldest:
+        return Icons.arrow_upward; // mũi tên lên (cũ nhất)
+      default:
+        return Icons.swap_vert; // mặc định
+    }
+  }
+
+  List<PlayListModel> _sortPlaylists(List<PlayListModel> playlists) {
+    switch (_sortOrder) {
+      case SortOrder.newest:
+        return List.from(playlists)..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      case SortOrder.oldest:
+        return List.from(playlists)..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      default:
+        return playlists; // giữ nguyên thứ tự từ provider
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final playlistProvider = context.watch<PlayListProvider>();
-    final playlists = playlistProvider.playlists;
+    final playlists = _sortPlaylists(playlistProvider.playlists);
 
     return Scaffold(
       body: SafeArea(
@@ -26,29 +70,37 @@ class LibraryScreen extends StatelessWidget {
             children: [
               ProfileHeader(title: 'Thư viện'),
 
-              /// ===== GẦN ĐÂY =====
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
-                  children: const [
-                    Icon(Icons.swap_vert),
-                    SizedBox(width: 8),
-                    Text(
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        _getSortIcon() as IconData?,
+                      ),
+                      onPressed: _toggleSortOrder,
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
                       "Gần đây",
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Spacer(),
-                    Icon(Icons.grid_view),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.grid_view),
+                      onPressed: () {
+                        
+                      },
+                    ),
                   ],
                 ),
               ),
 
               const SizedBox(height: 20),
 
-              /// ===== DANH SÁCH PLAYLIST =====
               Expanded(
                 child: playlistProvider.isLoading
                     ? const Center(child: CircularProgressIndicator())
@@ -56,38 +108,32 @@ class LibraryScreen extends StatelessWidget {
                         ? Center(child: Text('Lỗi: ${playlistProvider.error}'))
                         : ListView(
                             children: [
-                              // Mục "Bài hát đã thích" (có thể thay bằng dữ liệu thật sau)
                               LibraryItem(
                                 title: "Bài hát đã thích",
-                                // subtitle: "Danh sách phát • 2 bài hát",
                                 showOptions: false,
                                 isLiked: true,
                                 onTap: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) => const LoveListScreen(
-                                      ),
+                                      builder: (_) => const LoveListScreen(),
                                     ),
                                   );
                                 },
                               ),
                               LibraryItem(
                                 title: "Bài hát đã tải",
-                                // subtitle: "Danh sách phát • 2 bài hát",
                                 isDownload: true,
                                 showOptions: false,
                                 onTap: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) => const DownloadedSongsScreen(
-                                      ),
+                                      builder: (_) => const DownloadedSongsScreen(),
                                     ),
                                   );
                                 },
                               ),
-                              // Các playlist do người dùng tạo
                               ...playlists.map((playlist) {
                                 return LibraryItem(
                                   title: playlist.name,
@@ -103,14 +149,12 @@ class LibraryScreen extends StatelessWidget {
                                         builder: (_) => SongListScreen(
                                           title: playlist.name,
                                           playlistId: playlist.id,
-                                          // Có thể truyền thêm playlist.id nếu màn hình chi tiết cần
                                         ),
                                       ),
                                     );
                                   },
                                 );
                               }).toList(),
-                              // Nút thêm playlist mới
                               LibraryItem(
                                 title: "Thêm danh sách phát",
                                 showOptions: false,
@@ -131,9 +175,7 @@ class LibraryScreen extends StatelessWidget {
     );
   }
 
-  /// Hiển thị hộp thoại tạo playlist mới
-  void _showCreatePlaylistDialog(
-      BuildContext context, PlayListProvider provider) {
+  void _showCreatePlaylistDialog(BuildContext context, PlayListProvider provider) {
     final controller = TextEditingController();
     showDialog(
       context: context,

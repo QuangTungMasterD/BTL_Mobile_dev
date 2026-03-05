@@ -56,6 +56,7 @@ class LibraryItem extends StatelessWidget {
                           : isDownload
                               ? Icons.download
                               : Icons.add,
+                      color: isLiked || isDownload ? Colors.white : Colors.white70,
                     ),
             ),
             const SizedBox(width: 14),

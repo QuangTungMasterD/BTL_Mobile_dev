@@ -1,5 +1,6 @@
 import 'package:btl_music_app/core/database/database_helper.dart';
 import 'package:btl_music_app/core/widgets/bottom.dart';
+import 'package:btl_music_app/core/widgets/mini_player.dart';
 import 'package:btl_music_app/features/search/presentation/search_result_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -99,7 +100,10 @@ class _SearchLandingScreenState extends State<SearchLandingScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: AppBottomNav(currentIndex: 0),
+      bottomNavigationBar: const Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [MiniPlayer(), AppBottomNav(currentIndex: 1)],
+      ),
     );
   }
 }

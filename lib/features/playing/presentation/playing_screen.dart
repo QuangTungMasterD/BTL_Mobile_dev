@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:btl_music_app/core/providers/auth_provider.dart';
 import 'package:btl_music_app/core/providers/player_provider.dart';
 import 'package:btl_music_app/core/widgets/song_options_button.dart';
 import 'package:btl_music_app/features/comment/presentation/comment_screen.dart';
@@ -31,9 +32,7 @@ class _PlayingScreenState extends State<PlayingScreen> {
       builder: (context, player, child) {
         final song = player.currentSong;
         if (song == null) {
-          return const Scaffold(
-            body: Center(child: Text('Không có bài hát')),
-          );
+          return const Scaffold(body: Center(child: Text('Không có bài hát')));
         }
 
         final imageUrl = song.thumbnail;
@@ -78,7 +77,10 @@ class _PlayingScreenState extends State<PlayingScreen> {
               /// HEADER
               SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: Row(
                     children: [
                       /// LEFT
@@ -181,7 +183,11 @@ class _PlayingScreenState extends State<PlayingScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              const Icon(Icons.shuffle, color: Colors.purple, size: 24),
+                              const Icon(
+                                Icons.shuffle,
+                                color: Colors.purple,
+                                size: 24,
+                              ),
                               IconButton(
                                 icon: const Icon(
                                   Icons.skip_previous,
@@ -197,7 +203,9 @@ class _PlayingScreenState extends State<PlayingScreen> {
                                 backgroundColor: Colors.white,
                                 child: IconButton(
                                   icon: Icon(
-                                    player.isPlaying ? Icons.pause : Icons.play_arrow,
+                                    player.isPlaying
+                                        ? Icons.pause
+                                        : Icons.play_arrow,
                                     color: Colors.black,
                                     size: 38,
                                   ),
@@ -220,7 +228,11 @@ class _PlayingScreenState extends State<PlayingScreen> {
                                   // TODO: chuyển bài tiếp theo
                                 },
                               ),
-                              const Icon(Icons.repeat, color: Colors.white, size: 24),
+                              const Icon(
+                                Icons.repeat,
+                                color: Colors.white,
+                                size: 24,
+                              ),
                             ],
                           ),
                           Padding(
@@ -236,7 +248,13 @@ class _PlayingScreenState extends State<PlayingScreen> {
                                       context: context,
                                       isScrollControlled: true,
                                       backgroundColor: Colors.transparent,
-                                      builder: (_) => const CommentSheet(),
+                                      builder: (_) => CommentSheet(
+                                        songId: song.id,
+                                        currentUserId: context
+                                            .read<AuthUserProvider>()
+                                            .user
+                                            ?.uid,
+                                      ),
                                     );
                                   },
                                 ),

@@ -2,7 +2,6 @@
 import 'package:btl_music_app/core/providers/player_provider.dart';
 import 'package:btl_music_app/core/providers/song_provider.dart';
 import 'package:btl_music_app/core/widgets/song_options_button.dart';
-import 'package:btl_music_app/features/playing/presentation/playing_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -27,14 +26,10 @@ class SongItem extends StatelessWidget {
     return InkWell(
       onTap: onTap ?? () {
         final player = context.read<PlayerProvider>();
-        // Tạo đối tượng SongModel tạm thời để play (cần lấy từ cache hoặc provider)
-        // Tốt nhất nên có một phương thức để lấy SongModel từ id.
-        // Ở đây giả sử có SongProvider để lấy chi tiết bài hát.
         final songProvider = context.read<SongProvider>();
         songProvider.getSongById(songId).then((song) {
           if (song != null) {
             player.playSong(song);
-            // Điều hướng thông minh
             bool found = false;
             Navigator.popUntil(context, (route) {
               if (route.settings.name == '/playing') found = true;

@@ -23,6 +23,21 @@ class SongProvider extends ChangeNotifier {
 
   SongProvider(this._repo);
 
+  Future<List<SongModel>> getSongsByArtistId(String id) async {
+    if (_cache.containsKey(id)) return [_cache[id]!];
+    try {
+      final songs = await _repo.getSongsByArtistId(id);
+      for (var song in songs) {
+        _cache[song.id] = song;
+      }
+      return songs;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return [];
+    }
+  }
+
   // --- Cache methods ---
   Future<SongModel?> getSongById(String id) async {
     if (_cache.containsKey(id)) return _cache[id];

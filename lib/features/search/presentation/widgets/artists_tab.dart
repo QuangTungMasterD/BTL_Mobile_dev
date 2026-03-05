@@ -1,4 +1,5 @@
 import 'package:btl_music_app/core/providers/artist_provider.dart';
+import 'package:btl_music_app/features/artist/presentation/artist_songs_screen.dart';
 import 'package:btl_music_app/features/music/data/models/artist_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -34,13 +35,23 @@ class ArtistsTab extends StatelessWidget {
               leading: CircleAvatar(
                 radius: 25,
                 backgroundImage: NetworkImage(artist.avatarAr),
-                child: artist.avatarAr.isEmpty ? const Icon(Icons.person, color: Colors.white) : null,
+                child: artist.avatarAr.isEmpty
+                    ? const Icon(Icons.person, color: Colors.white)
+                    : null,
               ),
               title: Text(artist.name),
               subtitle: Text("Nghệ sĩ • ${artist.followerCount} quan tâm"),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
-                // Sau này mở màn hình chi tiết nghệ sĩ
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ArtistSongsScreen(
+                      artistId: artist.id,
+                      artistName: artist.name,
+                    ),
+                  ),
+                );
               },
             );
           },
