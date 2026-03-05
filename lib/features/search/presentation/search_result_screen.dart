@@ -1,112 +1,89 @@
+import 'package:btl_music_app/core/providers/artist_provider.dart';
+import 'package:btl_music_app/core/providers/song_provider.dart';
 import 'package:btl_music_app/core/widgets/bottom.dart';
+import 'package:btl_music_app/features/search/presentation/widgets/featured_tab.dart';
+import 'package:btl_music_app/features/search/presentation/widgets/songs_tab.dart';
+import 'package:btl_music_app/features/search/presentation/widgets/artists_tab.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class SearchResultScreen extends StatelessWidget {
+class SearchResultScreen extends StatefulWidget {
   final String query;
   const SearchResultScreen({super.key, required this.query});
 
   @override
+  State<SearchResultScreen> createState() => _SearchResultScreenState();
+}
+
+class _SearchResultScreenState extends State<SearchResultScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  bool _hasSearchedSongs = false;
+  bool _hasSearchedArtists = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(_onTabChanged);
+
+    // Tìm kiếm bài hát ngay từ đầu
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_hasSearchedSongs) {
+        _hasSearchedSongs = true;
+        context.read<SongProvider>().searchSongs(widget.query);
+      }
+    });
+  }
+
+  void _onTabChanged() {
+    if (_tabController.indexIsChanging) return;
+
+    // Tab Nghệ sĩ (index 2)
+    if (_tabController.index == 2) {
+      if (!_hasSearchedArtists) {
+        _hasSearchedArtists = true;
+        context.read<ArtistProvider>().searchArtists(widget.query);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_onTabChanged);
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 4,
-      child: Scaffold(
-        appBar: AppBar(
-          title: TextField(
-            controller: TextEditingController(text: query),
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              hintText: "Tìm kiếm...",
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        title: TextField(
+          controller: TextEditingController(text: widget.query),
+          decoration: const InputDecoration(
+            border: InputBorder.none,
+            hintText: "Tìm kiếm...",
           ),
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: "Nổi bật"),
-              Tab(text: "Bài hát"),
-              Tab(text: "Playlist"),
-              Tab(text: "Nghệ sĩ"),
-            ],
-          ),
+          onTap: () => Navigator.pop(context),
         ),
-        body: const TabBarView(
-          children: [
-            _ResultList(),
-            _ResultList(),
-            _ResultPlaylist(),
-            _ResultArtist(),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: "Nổi bật"),
+            Tab(text: "Bài hát"),
+            Tab(text: "Nghệ sĩ"),
           ],
         ),
-        bottomNavigationBar: AppBottomNav(currentIndex: 0),
       ),
-    );
-  }
-}
-
-class _ResultPlaylist extends StatelessWidget {
-  const _ResultPlaylist();
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: 6,
-      itemBuilder: (_, index) {
-        return ListTile(
-          leading: Container(
-            width: 55,
-            height: 55,
-          ),
-          title: const Text(
-            "Thiệp Hồng Sai Tên (Single)",
-          ),
-          subtitle: const Text(
-            "DIMZ",
-          ),
-          trailing: const Icon(Icons.chevron_right),
-        );
-      },
-    );
-  }
-}
-
-class _ResultArtist extends StatelessWidget {
-  const _ResultArtist();
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: 8,
-      itemBuilder: (_, index) {
-        return ListTile(
-          leading: const CircleAvatar(
-            radius: 25,
-          ),
-          title: const Text(
-            "Nguyễn Thành Đạt",
-          ),
-          subtitle: const Text(
-            "Nghệ sĩ • 3,8K quan tâm",
-          ),
-          trailing: const Icon(Icons.chevron_right),
-        );
-      },
-    );
-  }
-}
-
-class _ResultList extends StatelessWidget {
-  const _ResultList();
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: 10,
-      itemBuilder: (_, index) {
-        return ListTile(
-          leading: const CircleAvatar(child: Icon(Icons.music_note)),
-          title: Text("Thiên Lý Ơi $index"),
-          subtitle: const Text("Jack - J97"),
-          trailing: const Icon(Icons.more_vert),
-        );
-      },
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          FeaturedTab(query: widget.query),
+          SongsTab(query: widget.query),
+          ArtistsTab(query: widget.query),
+        ],
+      ),
+      bottomNavigationBar: AppBottomNav(currentIndex: 0),
     );
   }
 }

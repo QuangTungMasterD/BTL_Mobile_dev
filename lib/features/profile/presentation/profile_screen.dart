@@ -173,8 +173,12 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildMenu(BuildContext context) {
     return Column(
       children: [
-        _menuItem(Icons.settings, "Cài đặt", () {}),
-        _menuItem(Icons.notifications, "Thông báo", () {}),
+        _menuItem(Icons.settings, "Cài đặt", () {
+          Navigator.pushNamed(context, '/settings');
+        }),
+        _menuItem(Icons.notifications, "Thông báo", () {
+          Navigator.pushNamed(context, '/notify');
+        }),
         _menuItem(Icons.logout, "Đăng xuất", () async {
           await context.read<AuthUserProvider>().logout();
           Navigator.pushReplacementNamed(context, '/login');

@@ -42,12 +42,12 @@ class MiniPlayer extends StatelessWidget {
               ),
 
               /// ❤️ Like
-              IconButton(
-                onPressed: () {
-                  // 👉 Không mở screen
-                },
-                icon: const Icon(Icons.favorite_border),
-              ),
+              // IconButton(
+              //   onPressed: () {
+              //     // 👉 Không mở screen
+              //   },
+              //   icon: const Icon(Icons.favorite_border),
+              // ),
               IconButton(
                 onPressed: () {
                   // 👉 Play / Pause

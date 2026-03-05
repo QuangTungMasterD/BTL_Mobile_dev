@@ -30,12 +30,12 @@ class ProfileHeader extends StatelessWidget {
           /// Icons
           Row(
             children: [
-              IconButton(
-                icon: Icon(Icons.settings_outlined),
-                onPressed: () {
-                  Navigator.pushNamed(context, '/settings');
-                },
-              ),
+              // IconButton(
+              //   icon: Icon(Icons.settings_outlined),
+              //   onPressed: () {
+              //     Navigator.pushNamed(context, '/settings');
+              //   },
+              // ),
 
               /// Notification with red dot
               Stack(
@@ -65,9 +65,9 @@ class ProfileHeader extends StatelessWidget {
                 icon: const Icon(Icons.search),
                 onPressed: () async {
                   // Navigator.pushNamed(context, '/search');
-                  // Navigator.pushNamed(context, '/search');
-                  await context.read<AuthUserProvider>().logout();
-                  Navigator.pushReplacementNamed(context, '/login');
+                  Navigator.pushNamed(context, '/search');
+                  // await context.read<AuthUserProvider>().logout();
+                  // Navigator.pushReplacementNamed(context, '/login');
                 },
               ),
             ],

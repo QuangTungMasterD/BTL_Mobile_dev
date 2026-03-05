@@ -1,3 +1,4 @@
+import 'package:btl_music_app/core/database/database_helper.dart';
 import 'package:btl_music_app/core/providers/app_provider.dart';
 import 'package:btl_music_app/core/theme/app_colors.dart';
 import 'package:btl_music_app/features/auth/presentation/login_screen.dart';
@@ -15,13 +16,14 @@ import 'package:btl_music_app/features/top/presentation/top_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+// import 'firebase_options.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp();
+  await DatabaseHelper.instance.database;
   runApp(const MyApp());
 }
 

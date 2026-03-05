@@ -1,3 +1,4 @@
+import 'package:btl_music_app/core/database/database_helper.dart';
 import 'package:btl_music_app/core/widgets/bottom.dart';
 import 'package:btl_music_app/features/search/presentation/search_result_screen.dart';
 import 'package:flutter/material.dart';
@@ -11,24 +12,33 @@ class SearchLandingScreen extends StatefulWidget {
 
 class _SearchLandingScreenState extends State<SearchLandingScreen> {
   final TextEditingController _controller = TextEditingController();
+  List<String> historySearch = [];
 
-  final List<String> historySearch = [
-    "thiệp hồng sai tên",
-    "vạn sự như ý",
-    "50 năm về sau",
-    "#zingchart",
-    "workout",
-    "thư giãn"
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadHistory();
+  }
 
-  void _goToResult(String query) {
+  Future<void> _loadHistory() async {
+    final recent = await DatabaseHelper.instance.getRecentSearches(limit: 10);
+    setState(() {
+      historySearch = recent;
+    });
+  }
+
+  Future<void> _goToResult(String query) async {
     if (query.trim().isEmpty) return;
+
+    // Lưu query vào SQLite
+    await DatabaseHelper.instance.addSearchQuery(query.trim());
+
+    // Load lại lịch sử để cập nhật UI
+    await _loadHistory();
 
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => SearchResultScreen(query: query),
-      ),
+      MaterialPageRoute(builder: (_) => SearchResultScreen(query: query)),
     );
   }
 
@@ -43,10 +53,22 @@ class _SearchLandingScreenState extends State<SearchLandingScreen> {
         ),
         title: TextField(
           controller: _controller,
+          keyboardType: TextInputType.text,
           textInputAction: TextInputAction.search,
-          decoration: const InputDecoration(
+          enableSuggestions: true,
+          autocorrect: true,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: InputDecoration(
             hintText: "Tìm kiếm bài hát, nghệ sĩ...",
             border: InputBorder.none,
+            // Thêm icon tìm kiếm ở bên phải
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.search, color: Colors.grey),
+              onPressed: () {
+                // Khi bấm icon → gọi tìm kiếm giống như Enter
+                _goToResult(_controller.text);
+              },
+            ),
           ),
           onSubmitted: (value) {
             _goToResult(value);
@@ -78,9 +100,7 @@ class _SearchLandingScreenState extends State<SearchLandingScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: AppBottomNav(
-        currentIndex: 0,
-      ),
+      bottomNavigationBar: AppBottomNav(currentIndex: 0),
     );
   }
 }
