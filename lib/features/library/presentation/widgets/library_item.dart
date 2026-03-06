@@ -131,7 +131,7 @@ class LibraryItem extends StatelessWidget {
                       // Dòng tên playlist
                       Text(
                         title,
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
@@ -166,7 +166,6 @@ class LibraryItem extends StatelessWidget {
       );
     }
 
-    // Chế độ danh sách (giữ nguyên)
     return InkWell(
       onTap: onTap,
       child: Padding(
