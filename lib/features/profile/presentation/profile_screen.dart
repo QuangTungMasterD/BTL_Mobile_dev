@@ -97,10 +97,7 @@ class ProfileScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          CircleAvatar(
-            radius: 45,
-            backgroundImage: NetworkImage(avatarUrl),
-          ),
+          CircleAvatar(radius: 45, backgroundImage: NetworkImage(avatarUrl)),
           const SizedBox(height: 12),
           Text(
             name,
@@ -127,13 +124,19 @@ class ProfileScreen extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const EditProfileScreen()),
               );
             },
-            style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.white)),
-            child: const Text("Sửa hồ sơ", style: TextStyle(color: Colors.white)),
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: Colors.white),
+            ),
+            child: const Text(
+              "Sửa hồ sơ",
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
     );
   }
+
   Widget _buildPremiumCard(BuildContext context, UserModel user) {
     if (user.isPremium) return const SizedBox.shrink();
     return Padding(
@@ -180,8 +183,29 @@ class ProfileScreen extends StatelessWidget {
           Navigator.pushNamed(context, '/notify');
         }),
         _menuItem(Icons.logout, "Đăng xuất", () async {
-          await context.read<AuthUserProvider>().logout();
-          Navigator.pushReplacementNamed(context, '/login');
+          final shouldLogout = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Xác nhận đăng xuất'),
+              content: const Text('Bạn có chắc chắn muốn đăng xuất?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Hủy'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text('Đăng xuất'),
+                ),
+              ],
+            ),
+          );
+          if (shouldLogout == true) {
+            await context.read<AuthUserProvider>().logout();
+            if (context.mounted) {
+              Navigator.pushReplacementNamed(context, '/login');
+            }
+          }
         }),
       ],
     );
