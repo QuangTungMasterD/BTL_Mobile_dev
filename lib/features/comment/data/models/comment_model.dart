@@ -12,6 +12,7 @@ class CommentModel {
   final int likeCount;      // Số lượt thích
   final List<String> likedBy; // Danh sách user id đã thích
   final String? parentId;   // null nếu là comment gốc, nếu không là reply
+  final bool isDeleted;
 
   CommentModel({
     required this.id,
@@ -24,6 +25,7 @@ class CommentModel {
     this.likeCount = 0,
     this.likedBy = const [],
     this.parentId,
+    this.isDeleted = false,
   });
 
   factory CommentModel.fromJson(Map<String, dynamic> data, String id) {
@@ -38,6 +40,7 @@ class CommentModel {
       likeCount: (data['likeCount'] as num?)?.toInt() ?? 0,
       likedBy: List<String>.from(data['likedBy'] ?? []),
       parentId: data['parentId'],
+      isDeleted: data['isDeleted'] ?? false,
     );
   }
 
@@ -52,6 +55,7 @@ class CommentModel {
       'likeCount': likeCount,
       'likedBy': likedBy,
       'parentId': parentId,
+      'isDeleted': isDeleted,
     };
   }
 
@@ -70,6 +74,7 @@ class CommentModel {
       likeCount: likeCount ?? this.likeCount,
       likedBy: likedBy ?? this.likedBy,
       parentId: parentId,
+      isDeleted: isDeleted ?? this.isDeleted,
     );
   }
 }

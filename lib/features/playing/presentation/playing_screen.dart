@@ -242,7 +242,7 @@ class _PlayingScreenState extends State<PlayingScreen> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 IconButton(
-                                  icon: const Icon(Icons.comment_outlined),
+                                  icon: const Icon(Icons.comment_outlined, color: Colors.white70,),
                                   onPressed: () {
                                     showModalBottomSheet(
                                       context: context,

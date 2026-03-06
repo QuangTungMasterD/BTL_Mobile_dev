@@ -20,4 +20,7 @@ class CommentRepository {
 
   Future<void> toggleLike(String songId, String commentId, String userId) =>
       _service.toggleLike(songId, commentId, userId);
+
+  Future<void> softDeleteComment(String songId, String commentId) =>
+      _service.softDeleteComment(songId, commentId);
 }

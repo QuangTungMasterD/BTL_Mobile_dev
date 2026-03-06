@@ -54,4 +54,10 @@ class CommentService {
       });
     });
   }
+
+  Future<void> softDeleteComment(String songId, String commentId) async {
+  await _commentsRef(songId).doc(commentId).update({
+    'isDeleted': true,
+  });
+}
 }
