@@ -17,26 +17,40 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   }
 
   Future<void> _onSearchSongs(SearchSongs event, Emitter<SearchState> emit) async {
-    emit(SearchLoading());
+    final currentArtists = (state is SearchLoaded) ? (state as SearchLoaded).artists : <ArtistModel> [];
+    
+    // Chỉ emit loading nếu chưa có kết quả nào
+    if (currentArtists.isEmpty && (state is! SearchLoaded || (state as SearchLoaded).songs.isEmpty)) {
+      emit(SearchLoading());
+    }
+    
     try {
       final songs = await _repository.searchSongs(event.query);
-      // Giữ lại artists hiện tại nếu có, hoặc khởi tạo rỗng
-      final currentState = state;
-      final currentArtists = (currentState is SearchLoaded) ? currentState.artists : <ArtistModel> [];
-      emit(SearchLoaded(songs: songs, artists: currentArtists, query: event.query));
+      emit(SearchLoaded(
+        songs: songs,
+        artists: currentArtists,
+        query: event.query,
+      ));
     } catch (e) {
       emit(SearchError(e.toString()));
     }
   }
 
   Future<void> _onSearchArtists(SearchArtists event, Emitter<SearchState> emit) async {
-    // Nếu đang loading thì không làm gì? Có thể emit loading riêng nhưng ở đây ta giữ loading chung
-    emit(SearchLoading());
+    final currentSongs = (state is SearchLoaded) ? (state as SearchLoaded).songs : <SongModel> [];
+    
+    // Chỉ emit loading nếu chưa có kết quả nào
+    if (currentSongs.isEmpty && (state is! SearchLoaded || (state as SearchLoaded).artists.isEmpty)) {
+      emit(SearchLoading());
+    }
+    
     try {
       final artists = await _repository.searchArtists(event.query);
-      final currentState = state;
-      final currentSongs = (currentState is SearchLoaded) ? currentState.songs : <SongModel> [];
-      emit(SearchLoaded(songs: currentSongs, artists: artists, query: event.query));
+      emit(SearchLoaded(
+        songs: currentSongs,
+        artists: artists,
+        query: event.query,
+      ));
     } catch (e) {
       emit(SearchError(e.toString()));
     }
