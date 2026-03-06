@@ -32,6 +32,7 @@ class SettingsItem extends StatelessWidget {
             trailing ??
                 Icon(
                   Icons.chevron_right,
+                  // ignore: deprecated_member_use
                   color: theme.colorScheme.onSurface.withOpacity(0.5),
                 ),
           ],

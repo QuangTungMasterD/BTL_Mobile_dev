@@ -50,7 +50,6 @@ class UserProvider extends ChangeNotifier {
   Future<void> updateProfile(UserModel updated) async {
     try {
       await _repo.updateUser(updated);
-      // Stream sẽ tự cập nhật _user
     } catch (e) {
       debugPrint("Update profile error: $e");
     }

@@ -65,17 +65,13 @@ class ChartItem extends StatelessWidget {
               height: 55,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
-                image: song.thumbnail != null
-                    ? DecorationImage(
-                        image: NetworkImage(song.thumbnail!),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
+                image: DecorationImage(
+                  image: NetworkImage(song.thumbnail),
+                  fit: BoxFit.cover,
+                ),
                 color: Colors.grey.shade800,
               ),
-              child: song.thumbnail == null
-                  ? const Icon(Icons.music_note, color: Colors.white70)
-                  : null,
+              child: Icon(Icons.music_note, color: Colors.white70),
             ),
 
             const SizedBox(width: 12),

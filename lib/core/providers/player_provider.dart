@@ -1,4 +1,3 @@
-// core/providers/player_provider.dart
 import 'dart:async';
 import 'package:btl_music_app/features/playing/data/repo/player_repo.dart';
 import 'package:btl_music_app/features/playing/data/services/player_service.dart';
@@ -29,7 +28,7 @@ class PlayerProvider extends ChangeNotifier {
   }
 
   Future<void> _init() async {
-    // Lắng nghe stream từ repository
+    
     _stateSub = _repo.stateStream.listen((newState) {
       _state = newState;
       notifyListeners();
@@ -40,7 +39,6 @@ class PlayerProvider extends ChangeNotifier {
       notifyListeners();
     });
 
-    // Khôi phục trạng thái đã lưu
     await _restoreState();
   }
 
@@ -77,14 +75,14 @@ class PlayerProvider extends ChangeNotifier {
     );
   }
 
-  // Người dùng chọn bài hát
+  
   Future<void> playSong(SongModel song) async {
     _currentSong = song;
     _duration = Duration(seconds: song.duration ?? 0);
     _position = Duration.zero;
     _state = PlayerState.playing;
     _repo.setDuration(_duration);
-    _repo.play(song.audio ?? ''); // chỉ cập nhật state
+    _repo.play(song.audio ?? '');
     notifyListeners();
     await _persistState();
   }
@@ -92,7 +90,7 @@ class PlayerProvider extends ChangeNotifier {
   void pause() {
     if (_state == PlayerState.playing) {
       _repo.pause();
-      // state sẽ được cập nhật qua stream, nhưng ta cũng có thể set trực tiếp
+      
       _state = PlayerState.paused;
       notifyListeners();
       _persistState();
@@ -120,7 +118,7 @@ class PlayerProvider extends ChangeNotifier {
   Future<void> seek(Duration newPosition) async {
     if (_currentSong == null) return;
     _repo.seek(newPosition);
-    // position sẽ cập nhật qua stream
+    
     await _persistState();
   }
 

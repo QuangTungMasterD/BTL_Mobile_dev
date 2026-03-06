@@ -1,4 +1,3 @@
-// lib/core/widgets/song_options_button.dart
 import 'package:btl_music_app/core/database/database_helper.dart';
 import 'package:btl_music_app/core/providers/love_list_provider.dart';
 import 'package:btl_music_app/core/providers/play_list_provider.dart';
@@ -79,7 +78,6 @@ class SongOptionsButton extends StatelessWidget {
   }
 
   void _handleDownload(BuildContext context) async {
-    // Đóng bottom sheet trước
     if (context.mounted) Navigator.pop(context);
 
     final songProvider = context.read<SongProvider>();
@@ -109,7 +107,6 @@ class SongOptionsButton extends StatelessWidget {
   }
 
   void _handleDelete(BuildContext context) async {
-    // Đóng bottom sheet
     if (context.mounted) Navigator.pop(context);
 
     final confirm = await showDialog<bool>(
@@ -142,7 +139,6 @@ class SongOptionsButton extends StatelessWidget {
   }
 
   void _handleLoveToggle(BuildContext context, LoveListProvider loveProvider, bool isLoved) async {
-    // Đóng bottom sheet
     if (context.mounted) Navigator.pop(context);
     await loveProvider.toggleLoveSong(songId);
     if (context.mounted) {
@@ -203,7 +199,7 @@ class SongOptionsButton extends StatelessWidget {
                         SnackBar(content: Text("Đã thêm vào ${playlist.name}")),
                       );
                     }
-                    Navigator.pop(context); // đóng bottom sheet
+                    Navigator.pop(context);
                   },
                 );
               },

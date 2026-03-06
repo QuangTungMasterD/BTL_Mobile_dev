@@ -7,42 +7,47 @@ class ThemeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = context.watch<AppTheme>();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("Giao diện chủ đề"),
       ),
-      body: Column(
-        children: [
-
-          RadioListTile<ThemeMode>(
-            title: const Text("Sáng"),
-            value: ThemeMode.light,
-            groupValue: themeProvider.themeMode,
-            onChanged: (value) {
-              context.read<AppTheme>().setThemeMode(value!);
-            },
-          ),
-
-          RadioListTile<ThemeMode>(
-            title: const Text("Tối"),
-            value: ThemeMode.dark,
-            groupValue: themeProvider.themeMode,
-            onChanged: (value) {
-              context.read<AppTheme>().setThemeMode(value!);
-            },
-          ),
-
-          RadioListTile<ThemeMode>(
-            title: const Text("Theo hệ thống"),
-            value: ThemeMode.system,
-            groupValue: themeProvider.themeMode,
-            onChanged: (value) {
-              context.read<AppTheme>().setThemeMode(value!);
-            },
-          ),
-        ],
+      body: Consumer<AppTheme>(
+        builder: (context, themeProvider, child) {
+          return Column(
+            children: [
+              RadioListTile<ThemeMode>(
+                title: const Text("Sáng"),
+                value: ThemeMode.light,
+                groupValue: themeProvider.themeMode,
+                onChanged: (value) {
+                  if (value != null) {
+                    context.read<AppTheme>().setThemeMode(value);
+                  }
+                },
+              ),
+              RadioListTile<ThemeMode>(
+                title: const Text("Tối"),
+                value: ThemeMode.dark,
+                groupValue: themeProvider.themeMode,
+                onChanged: (value) {
+                  if (value != null) {
+                    context.read<AppTheme>().setThemeMode(value);
+                  }
+                },
+              ),
+              RadioListTile<ThemeMode>(
+                title: const Text("Theo hệ thống"),
+                value: ThemeMode.system,
+                groupValue: themeProvider.themeMode,
+                onChanged: (value) {
+                  if (value != null) {
+                    context.read<AppTheme>().setThemeMode(value);
+                  }
+                },
+              ),
+            ],
+          );
+        },
       ),
     );
   }

@@ -1,5 +1,3 @@
-
-import 'package:btl_music_app/features/setting/presentation/theme_screen.dart';
 import 'package:btl_music_app/features/setting/presentation/widgets/settings_item.dart';
 import 'package:btl_music_app/features/setting/presentation/widgets/settings_section.dart';
 import 'package:flutter/material.dart';
@@ -43,8 +41,6 @@ class SettingsScreen extends StatelessWidget {
               ),
             ],
           ),
-
-          /// ℹ Nhóm 2
           SettingsSection(
             children: [
               SettingsItem(

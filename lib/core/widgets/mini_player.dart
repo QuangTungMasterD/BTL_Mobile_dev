@@ -15,20 +15,17 @@ class MiniPlayer extends StatelessWidget {
         return Material(
           child: InkWell(
             onTap: () {
-              // Kiểm tra xem route '/playing' đã tồn tại trong stack chưa
               bool found = false;
               Navigator.popUntil(context, (route) {
                 if (route.settings.name == '/playing') {
                   found = true;
                 }
-                return true; // chỉ duyệt, không pop
+                return true;
               });
 
               if (found) {
-                // Đã có route '/playing' -> pop về nó
                 Navigator.popUntil(context, ModalRoute.withName('/playing'));
               } else {
-                // Chưa có -> push route mới
                 Navigator.pushNamed(context, '/playing');
               }
             },

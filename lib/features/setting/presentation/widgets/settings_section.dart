@@ -17,6 +17,7 @@ class SettingsSection extends StatelessWidget {
         ...children,
         Divider(
           height: 1,
+          // ignore: deprecated_member_use
           color: theme.dividerColor.withOpacity(0.2),
         ),
       ],

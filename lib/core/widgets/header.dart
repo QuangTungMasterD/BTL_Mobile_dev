@@ -20,18 +20,14 @@ class ProfileHeader extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          /// Title
           Text(
             title,
             style: theme.textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
-
-          /// Icons
           Row(
             children: [
-              // Lắng nghe unreadCount từ NotificationProvider
               Consumer<NotificationProvider>(
                 builder: (context, notifProvider, child) {
                   final hasUnread = notifProvider.unreadCount > 0;
