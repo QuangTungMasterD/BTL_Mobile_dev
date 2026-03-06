@@ -1,5 +1,7 @@
 import 'package:btl_music_app/core/providers/play_list_provider.dart';
 import 'package:btl_music_app/core/providers/song_provider.dart';
+import 'package:btl_music_app/core/widgets/bottom.dart';
+import 'package:btl_music_app/core/widgets/mini_player.dart';
 import 'package:btl_music_app/features/library/presentation/widgets/seach_playlist_layout.dart';
 import 'package:btl_music_app/features/music/data/models/song_model.dart';
 import 'package:flutter/material.dart';
@@ -56,6 +58,10 @@ class _SongListScreenState extends State<SongListScreen> {
                   onPressed: () {},
                 ),
               ),
+      ),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: const [MiniPlayer(), AppBottomNav(currentIndex: 0)],
       ),
     );
   }

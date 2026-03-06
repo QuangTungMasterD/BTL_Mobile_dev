@@ -1,4 +1,6 @@
 // downloaded_songs_screen.dart
+import 'package:btl_music_app/core/widgets/bottom.dart';
+import 'package:btl_music_app/core/widgets/mini_player.dart';
 import 'package:btl_music_app/features/library/presentation/widgets/seach_playlist_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:btl_music_app/core/database/database_helper.dart';
@@ -62,6 +64,10 @@ class _DownloadedSongsScreenState extends State<DownloadedSongsScreen> {
                   onPressed: () {},
                 ),
               ),
+      ),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: const [MiniPlayer(), AppBottomNav(currentIndex: 0)],
       ),
     );
   }
