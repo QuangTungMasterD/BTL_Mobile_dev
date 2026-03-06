@@ -3,10 +3,8 @@ import 'package:btl_music_app/core/widgets/bottom.dart';
 import 'package:btl_music_app/core/widgets/header.dart';
 import 'package:btl_music_app/core/widgets/mini_player.dart';
 import 'package:btl_music_app/features/library/data/models/play_list_model.dart';
-import 'package:btl_music_app/features/library/presentation/download_list_screen.dart';
-import 'package:btl_music_app/features/library/presentation/love_list_screen.dart';
-import 'package:btl_music_app/features/library/presentation/song_list_screen.dart';
-import 'package:btl_music_app/features/library/presentation/widgets/library_item.dart';
+import 'package:btl_music_app/features/library/presentation/widgets/playlist_grid_view.dart';
+import 'package:btl_music_app/features/library/presentation/widgets/playlist_list_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -76,7 +74,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ProfileHeader(title: 'Thư viện'),
-
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
@@ -112,8 +109,16 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     : playlistProvider.error != null
                         ? Center(child: Text('Lỗi: ${playlistProvider.error}'))
                         : _isGridView
-                            ? _buildGridView(playlists, playlistProvider)
-                            : _buildListView(playlists, playlistProvider),
+                          ? PlaylistGridView(
+                              playlists: playlists,
+                              provider: playlistProvider,
+                              onCreatePlaylist: () => _showCreatePlaylistDialog(context, playlistProvider),
+                            )
+                          : PlaylistListView(
+                              playlists: playlists,
+                              provider: playlistProvider,
+                              onCreatePlaylist: () => _showCreatePlaylistDialog(context, playlistProvider),
+                            ),
               ),
             ],
           ),
@@ -123,127 +128,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
         mainAxisSize: MainAxisSize.min,
         children: const [MiniPlayer(), AppBottomNav(currentIndex: 0)],
       ),
-    );
-  }
-
-  Widget _buildListView(List<PlayListModel> playlists, PlayListProvider provider) {
-    return ListView(
-      children: [
-        LibraryItem(
-          title: "Bài hát đã thích",
-          showOptions: false,
-          isLiked: true,
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const LoveListScreen()),
-            );
-          },
-        ),
-        LibraryItem(
-          title: "Bài hát đã tải",
-          isDownload: true,
-          showOptions: false,
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const DownloadedSongsScreen()),
-            );
-          },
-        ),
-        ...playlists.map((playlist) {
-          return LibraryItem(
-            title: playlist.name,
-            subtitle: "Danh sách phát • ${playlist.songIds.length} bài hát",
-            coverUrl: playlist.coverUrl,
-            onDelete: () => provider.deletePlaylist(playlist.id),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => SongListScreen(
-                    title: playlist.name,
-                    playlistId: playlist.id,
-                  ),
-                ),
-              );
-            },
-          );
-        }).toList(),
-        LibraryItem(
-          title: "Thêm danh sách phát",
-          showOptions: false,
-          onTap: () => _showCreatePlaylistDialog(context, provider),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildGridView(List<PlayListModel> playlists, PlayListProvider provider) {
-    return ListView(
-      children: [
-        // Các item tĩnh vẫn giữ dạng list (hoặc có thể tùy chỉnh)
-        LibraryItem(
-          title: "Bài hát đã thích",
-          showOptions: false,
-          isLiked: true,
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const LoveListScreen()),
-            );
-          },
-        ),
-        LibraryItem(
-          title: "Bài hát đã tải",
-          isDownload: true,
-          showOptions: false,
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const DownloadedSongsScreen()),
-            );
-          },
-        ),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.9,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-          ),
-          itemCount: playlists.length,
-          itemBuilder: (context, index) {
-            final playlist = playlists[index];
-            return LibraryItem(
-              title: playlist.name,
-              subtitle: "${playlist.songIds.length} bài hát",
-              coverUrl: playlist.coverUrl,
-              onDelete: () => provider.deletePlaylist(playlist.id),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => SongListScreen(
-                      title: playlist.name,
-                      playlistId: playlist.id,
-                    ),
-                  ),
-                );
-              },
-              isGrid: true,
-            );
-          },
-        ),
-        const SizedBox(height: 16),
-        LibraryItem(
-          title: "Thêm danh sách phát",
-          showOptions: false,
-          onTap: () => _showCreatePlaylistDialog(context, provider),
-        ),
-      ],
     );
   }
 

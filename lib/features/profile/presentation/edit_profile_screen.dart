@@ -1,6 +1,7 @@
 import 'package:btl_music_app/core/providers/user_provider.dart';
+import 'package:btl_music_app/features/profile/presentation/widget/date_select.dart';
+import 'package:btl_music_app/features/profile/presentation/widget/gender_select.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -100,9 +101,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       Navigator.pop(context); // Quay về ProfileScreen
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Lỗi khi lưu: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Lỗi khi lưu: $e")));
     }
 
     setState(() => _isSaving = false);
@@ -131,7 +132,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: SizedBox(
                 width: 20,
                 height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
               ),
             )
           else
@@ -164,8 +168,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     hint: "Viết gì đó về bạn...",
                     maxLines: 3,
                   ),
-                  _buildDateItem("Sinh nhật", _birthday, _pickDate),
-                  _buildGenderItem(),
+                  DateSelector(
+                    title: "Sinh nhật",
+                    date: _birthday,
+                    onDateSelected: (newDate) =>
+                        setState(() => _birthday = newDate),
+                  ),
+                  GenderSelector(
+                    gender: _gender,
+                    onGenderChanged: (newGender) {
+                      setState(() {
+                        _gender = newGender;
+                      });
+                    },
+                  )
                 ]),
                 const SizedBox(height: 25),
                 _sectionTitle("Thông tin tài khoản"),
@@ -182,7 +198,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     hint: "Số điện thoại của bạn",
                     keyboardType: TextInputType.phone,
                   ),
-                  _buildReadonlyItem("Email", Provider.of<UserProvider>(context).user?.email ?? "Chưa có"),
+                  _buildReadonlyItem(
+                    "Email",
+                    Provider.of<UserProvider>(context).user?.email ?? "Chưa có",
+                  ),
                   // Không có mật khẩu nữa
                 ]),
               ],
@@ -197,13 +216,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           const CircleAvatar(
             radius: 50,
             backgroundColor: Colors.teal,
-            child: Text("T", style: TextStyle(fontSize: 40, color: Colors.white)),
+            child: Text(
+              "T",
+              style: TextStyle(fontSize: 40, color: Colors.white),
+            ),
           ),
           const SizedBox(height: 12),
           GestureDetector(
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Chức năng đổi ảnh đại diện đang phát triển")),
+                const SnackBar(
+                  content: Text("Chức năng đổi ảnh đại diện đang phát triển"),
+                ),
               );
             },
             child: Container(
@@ -212,7 +236,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 color: Colors.grey[800],
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Text("Đổi ảnh đại diện", style: TextStyle(color: Colors.white)),
+              child: const Text(
+                "Đổi ảnh đại diện",
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ),
         ],
@@ -223,7 +250,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget _sectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.bold),
+      style: const TextStyle(
+        color: Colors.white70,
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+      ),
     );
   }
 
@@ -277,79 +308,4 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildDateItem(String title, DateTime? date, VoidCallback onTap) {
-    final formatted = date != null ? DateFormat("dd/MM/yyyy").format(date) : "Chưa có";
-    return Column(
-      children: [
-        ListTile(
-          title: Text(title, style: const TextStyle(color: Colors.white70)),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(formatted, style: const TextStyle(color: Colors.white)),
-              const SizedBox(width: 8),
-              const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.white54),
-            ],
-          ),
-          onTap: onTap,
-        ),
-        const Divider(color: Colors.white12, height: 1),
-      ],
-    );
-  }
-
-  Widget _buildGenderItem() {
-    return Column(
-      children: [
-        ListTile(
-          title: const Text("Giới tính", style: TextStyle(color: Colors.white70)),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(_gender, style: const TextStyle(color: Colors.white)),
-              const SizedBox(width: 8),
-              const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.white54),
-            ],
-          ),
-          onTap: _showGenderSheet,
-        ),
-        const Divider(color: Colors.white12, height: 1),
-      ],
-    );
-  }
-
-  Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _birthday ?? DateTime.now().subtract(const Duration(days: 365 * 20)),
-      firstDate: DateTime(1950),
-      lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(data: ThemeData.dark(), child: child!);
-      },
-    );
-
-    if (picked != null && mounted) {
-      setState(() => _birthday = picked);
-    }
-  }
-
-  void _showGenderSheet() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.grey[900],
-      builder: (_) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: ["Nam", "Nữ", "Khác"].map((g) {
-          return ListTile(
-            title: Text(g, style: const TextStyle(color: Colors.white)),
-            onTap: () {
-              setState(() => _gender = g);
-              Navigator.pop(context);
-            },
-          );
-        }).toList(),
-      ),
-    );
-  }
 }

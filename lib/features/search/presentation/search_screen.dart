@@ -38,6 +38,7 @@ class _SearchLandingScreenState extends State<SearchLandingScreen> {
     await _loadHistory();
 
     Navigator.push(
+      // ignore: use_build_context_synchronously
       context,
       MaterialPageRoute(builder: (_) => SearchResultScreen(query: query)),
     );

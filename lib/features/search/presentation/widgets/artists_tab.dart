@@ -1,6 +1,5 @@
 import 'package:btl_music_app/core/providers/artist_provider.dart';
 import 'package:btl_music_app/features/artist/presentation/artist_songs_screen.dart';
-import 'package:btl_music_app/features/music/data/models/artist_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

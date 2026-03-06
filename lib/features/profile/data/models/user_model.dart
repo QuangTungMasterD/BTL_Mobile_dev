@@ -33,7 +33,7 @@ class UserModel {
   // FROM FIRESTORE
   // ===============================
 
-  factory UserModel.fromDocument(DocumentSnapshot doc) {
+  factory UserModel.fromJson(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>?;
 
     if (data == null) {
@@ -46,7 +46,7 @@ class UserModel {
       displayName: data['display_name'] ?? '',
       fullName: data['fullname'] ?? '',
       phone: data['phone'] ?? '',
-      avatar: data['avatar'] ?? '',
+      avatar: data['avatar'] ?? 'https://images.spiderum.com/sp-images/9ae85f405bdf11f0a7b6d5c38c96eb0e.jpeg',
       bio: data['bio'] ?? '',
       gender: data['gender'] ?? true, // mặc định male
       birthday: (data['birthday'] as Timestamp?)?.toDate(),
@@ -60,7 +60,7 @@ class UserModel {
   // CREATE MAP
   // ===============================
 
-  Map<String, dynamic> toCreateMap() {
+  Map<String, dynamic> toJson() {
     return {
       'email': email,
       'display_name': displayName,

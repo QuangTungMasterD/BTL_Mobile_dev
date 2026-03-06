@@ -1,5 +1,5 @@
-
 import 'package:btl_music_app/core/providers/auth_provider.dart';
+import 'package:btl_music_app/features/auth/presentation/widgets/custom_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -23,11 +23,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     try {
       setState(() => _isLoading = true);
 
-      if (_passwordController.text.trim() !=
-        _confirmController.text.trim()) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Passwords do not match")),
-        );
+      if (_passwordController.text.trim() != _confirmController.text.trim()) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Passwords do not match")));
         return;
       }
 
@@ -68,39 +67,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            _buildField(
-              _emailController,
-              "Email",
-              Icons.email,
-              isPassword: false,
-              obscureText: false,
-              toggle: null,
+            CustomTextField(
+              controller: _emailController,
+              hint: "Email",
+              icon: Icons.email,
+              // isPassword: false (mặc định)
             ),
             const SizedBox(height: 20),
-            _buildField(
-              _passwordController,
-              "Password",
-              Icons.lock,
+            CustomTextField(
+              controller: _passwordController,
+              hint: "Password",
+              icon: Icons.lock,
               isPassword: true,
               obscureText: _obscurePassword,
-              toggle: () {
-                setState(() {
-                  _obscurePassword = !_obscurePassword;
-                });
-              },
+              onToggle: () =>
+                  setState(() => _obscurePassword = !_obscurePassword),
             ),
             const SizedBox(height: 20),
-            _buildField(
-              _confirmController,
-              "Confirm Password",
-              Icons.lock,
+            CustomTextField(
+              controller: _confirmController,
+              hint: "Confirm Password",
+              icon: Icons.lock,
               isPassword: true,
               obscureText: _obscureConfirm,
-              toggle: () {
-                setState(() {
-                  _obscureConfirm = !_obscureConfirm;
-                });
-              },
+              onToggle: () =>
+                  setState(() => _obscureConfirm = !_obscureConfirm),
             ),
             const SizedBox(height: 20),
             SizedBox(
@@ -120,41 +111,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildField(
-    TextEditingController controller,
-    String hint,
-    IconData icon, {
-    bool isPassword = false,
-    required bool obscureText,
-    required VoidCallback? toggle,
-  }) {
-    return TextField(
-      controller: controller,
-      obscureText: isPassword ? obscureText : false,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(color: Colors.white38),
-        prefixIcon: Icon(icon, color: Colors.white54),
-        suffixIcon: isPassword
-            ? IconButton(
-                icon: Icon(
-                  obscureText ? Icons.visibility_off : Icons.visibility,
-                  color: Colors.white54,
-                ),
-                onPressed: toggle,
-              )
-            : null,
-        filled: true,
-        fillColor: Colors.white.withOpacity(0.08),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
         ),
       ),
     );

@@ -23,8 +23,7 @@ class UserService {
       final email = _auth.currentUser?.email ?? '';
       final emptyUser = UserModel.empty(_currentUid, email);
 
-      await docRef.set(emptyUser.toCreateMap());
-      print("Created new user document for UID: $_currentUid");
+      await docRef.set(emptyUser.toJson());
     }
   }
 
@@ -34,7 +33,7 @@ class UserService {
     if (!doc.exists || doc.data() == null) {
       throw Exception("User document not found");
     }
-    return UserModel.fromDocument(doc);
+    return UserModel.fromJson(doc);
   }
 
   /// Stream realtime
@@ -43,7 +42,7 @@ class UserService {
       if (!doc.exists || doc.data() == null) {
         return UserModel.empty(_currentUid, _auth.currentUser?.email ?? '');
       }
-      return UserModel.fromDocument(doc);
+      return UserModel.fromJson(doc);
     });
   }
 

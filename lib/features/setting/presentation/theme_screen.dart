@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:btl_music_app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

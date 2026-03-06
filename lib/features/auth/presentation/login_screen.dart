@@ -1,4 +1,5 @@
 import 'package:btl_music_app/core/providers/auth_provider.dart';
+import 'package:btl_music_app/features/auth/presentation/widgets/custom_text_field.dart';
 import 'package:btl_music_app/features/home/presentation/home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
 
   bool _isLoading = false;
 
@@ -118,19 +120,21 @@ class _LoginScreenState extends State<LoginScreen> {
                   padding: const EdgeInsets.all(24),
                   child: Column(
                     children: [
-                      _buildInputField(
+                      CustomTextField(
                         controller: _emailController,
                         hint: "Email",
                         icon: Icons.email_outlined,
                       ),
-
                       const SizedBox(height: 20),
-
-                      _buildInputField(
+                      CustomTextField(
                         controller: _passwordController,
                         hint: "Password",
                         icon: Icons.lock_outline,
                         isPassword: true,
+                        obscureText: _obscurePassword,
+                        onToggle: () => setState(
+                          () => _obscurePassword = !_obscurePassword,
+                        ),
                       ),
 
                       const SizedBox(height: 30),
@@ -194,30 +198,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
           if (_isLoading) const Center(child: CircularProgressIndicator()),
         ],
-      ),
-    );
-  }
-
-  Widget _buildInputField({
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
-    bool isPassword = false,
-  }) {
-    return TextField(
-      controller: controller,
-      obscureText: isPassword,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(color: Colors.white38),
-        prefixIcon: Icon(icon, color: Colors.white54),
-        filled: true,
-        fillColor: Colors.white.withOpacity(0.08),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
       ),
     );
   }

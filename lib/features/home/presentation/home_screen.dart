@@ -5,6 +5,9 @@ import 'package:btl_music_app/core/widgets/header.dart';
 import 'package:btl_music_app/core/widgets/mini_player.dart';
 import 'package:btl_music_app/core/widgets/song_item.dart';
 import 'package:btl_music_app/features/artist/presentation/artist_songs_screen.dart';
+import 'package:btl_music_app/features/home/presentation/widgets/artist_card..dart';
+import 'package:btl_music_app/features/home/presentation/widgets/category_chip.dart';
+import 'package:btl_music_app/features/home/presentation/widgets/promo_banner.dart';
 import 'package:btl_music_app/features/music/data/models/artist_model.dart';
 import 'package:btl_music_app/features/music/data/models/song_model.dart';
 import 'package:flutter/material.dart';
@@ -61,10 +64,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: ListView(
                           scrollDirection: Axis.horizontal,
                           children: [
-                            _chip("Cho bạn", true, context),
-                            _chip("Thư giãn", false, context),
-                            _chip("Tập trung", false, context),
-                            _chip("Workout", false, context),
+                            CategoryChip(text: "Cho bạn", selected: true),
+                            CategoryChip(text: "Thư giãn", selected: false),
+                            CategoryChip(text: "Tập trung", selected: false),
+                            CategoryChip(text: "Workout", selected: false),
                           ],
                         ),
                       ),
@@ -104,39 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
 
                       /// ===== PROMO BANNER =====
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: const Color.fromARGB(255, 139, 92, 225),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Row(
-                          children: const [
-                            Icon(Icons.star, color: Colors.white),
-                            SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Ưu đãi mừng xuân",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    "Lì xì bạn 7 ngày Plus miễn phí",
-                                    style: TextStyle(color: Colors.white70),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white),
-                          ],
-                        ),
-                      ),
+                      PromoBanner(),
 
                       const SizedBox(height: 30),
 
@@ -167,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               itemCount: displayedArtists.length,
                               itemBuilder: (context, index) {
                                 final artist = displayedArtists[index];
-                                return _artistCard(
+                                return ArtistCard(
                                   artist: artist,
                                   onTap: () {
                                     Navigator.push(
@@ -203,67 +174,5 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _chip(String text, bool selected, BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: selected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-            color: selected ? Colors.white : Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _artistCard({required ArtistModel artist, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 140,
-        margin: const EdgeInsets.only(right: 12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          image: artist.avatar != null
-              ? DecorationImage(
-                  image: NetworkImage(artist.avatar!),
-                  fit: BoxFit.cover,
-                )
-              : null,
-          color: artist.avatar == null ? Colors.grey.shade800 : null,
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.transparent,
-                Colors.black.withOpacity(0.7),
-              ],
-            ),
-          ),
-          alignment: Alignment.bottomLeft,
-          padding: const EdgeInsets.all(12),
-          child: Text(
-            artist.name,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              fontSize: 16,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ),
-    );
-  }
+  
 }

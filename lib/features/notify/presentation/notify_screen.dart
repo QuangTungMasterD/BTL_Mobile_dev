@@ -54,11 +54,7 @@ class NotifyScreen extends StatelessWidget {
               return NotifyItem(
                 notification: notif,
                 onTap: () {
-                  // Đánh dấu đã đọc khi bấm
                   provider.markAsRead(notif.id);
-                  
-                  // Sau này có thể mở chi tiết (bài hát, profile...)
-                  // Ví dụ: nếu là like bài hát → mở bài hát đó
                 },
               );
             },
