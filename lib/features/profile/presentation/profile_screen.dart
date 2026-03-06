@@ -38,7 +38,7 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
-                      userProvider.initUser(); // Thử load lại thủ công
+                      userProvider.initUser();
                     },
                     child: const Text("Tải lại"),
                   ),

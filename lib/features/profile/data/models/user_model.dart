@@ -8,7 +8,7 @@ class UserModel {
   final String phone;
   final String avatar;
   final String bio;
-  final bool gender; // true = male, false = female
+  final bool gender;
   final DateTime? birthday;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -105,7 +105,7 @@ class UserModel {
       displayName: '',
       fullName: '',
       phone: '',
-      avatar: '',
+      avatar: 'https://images.spiderum.com/sp-images/9ae85f405bdf11f0a7b6d5c38c96eb0e.jpeg',
       bio: '',
       gender: true,
       birthday: null,
@@ -114,10 +114,6 @@ class UserModel {
       isPremium: false,
     );
   }
-
-  // ===============================
-  // COPY WITH
-  // ===============================
 
   UserModel copyWith({
     String? displayName,

@@ -11,7 +11,7 @@ class ProfileUserHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final avatarUrl = user.avatar.isNotEmpty
         ? user.avatar
-        : "https://i.pravatar.cc/300";
+        : "https://images.spiderum.com/sp-images/9ae85f405bdf11f0a7b6d5c38c96eb0e.jpeg";
 
     final name = user.displayName.isNotEmpty
         ? user.displayName

@@ -1,5 +1,6 @@
 import 'package:btl_music_app/core/providers/user_provider.dart';
 import 'package:btl_music_app/features/profile/presentation/widget/date_select.dart';
+import 'package:btl_music_app/features/profile/presentation/widget/edit_field.dart';
 import 'package:btl_music_app/features/profile/presentation/widget/gender_select.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +20,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _fullNameController;
   late TextEditingController _phoneController;
   late TextEditingController _bioController;
+  late TextEditingController _avatarController;
 
   DateTime? _birthday;
   String _gender = "Khác";
@@ -30,6 +32,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _fullNameController = TextEditingController();
     _phoneController = TextEditingController();
     _bioController = TextEditingController();
+    _avatarController = TextEditingController();
 
     // Load dữ liệu sau khi widget build xong
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -50,6 +53,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _birthday = user.birthday;
         _gender = user.gender ? "Nam" : "Nữ";
         _isLoading = false;
+        _avatarController.text = user.avatar;
       });
     } else {
       setState(() => _isLoading = false);
@@ -87,7 +91,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         phone: _phoneController.text.trim(),
         bio: _bioController.text.trim(),
         birthday: _birthday,
-        gender: _gender == "Nam", // true = Nam
+        gender: _gender == "Nam",
       );
 
       await userProvider.updateProfile(updatedUser);
@@ -99,7 +103,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
       );
 
-      Navigator.pop(context); // Quay về ProfileScreen
+      Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(
         context,
@@ -115,6 +119,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _fullNameController.dispose();
     _phoneController.dispose();
     _bioController.dispose();
+    _avatarController.dispose();
     super.dispose();
   }
 
@@ -151,18 +156,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                _buildAvatar(),
+                AvatarSection(avatarUrl: _avatarController.text),
                 const SizedBox(height: 30),
-                _sectionTitle("Giới thiệu về bạn"),
+                SectionTitle(title: "Giới thiệu về bạn"),
                 const SizedBox(height: 10),
-                _buildInfoCard([
-                  _buildEditableItem(
+                InfoCard(children: [
+                  EditableField(
                     title: "Tên hiển thị",
                     controller: _displayNameController,
                     hint: "Tên bạn muốn hiển thị",
                   ),
-                  _buildReadonlyItem("ID", "42319406"), // ID không sửa
-                  _buildEditableItem(
+                  EditableField(
                     title: "Tiểu sử",
                     controller: _bioController,
                     hint: "Viết gì đó về bạn...",
@@ -184,127 +188,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   )
                 ]),
                 const SizedBox(height: 25),
-                _sectionTitle("Thông tin tài khoản"),
+                SectionTitle(title: "Thông tin tài khoản"),
                 const SizedBox(height: 10),
-                _buildInfoCard([
-                  _buildEditableItem(
+                InfoCard(children: [
+                  EditableField(
                     title: "Tên đầy đủ",
                     controller: _fullNameController,
                     hint: "Họ và tên đầy đủ",
                   ),
-                  _buildEditableItem(
+                  EditableField(
                     title: "Số điện thoại",
                     controller: _phoneController,
                     hint: "Số điện thoại của bạn",
                     keyboardType: TextInputType.phone,
                   ),
-                  _buildReadonlyItem(
-                    "Email",
-                    Provider.of<UserProvider>(context).user?.email ?? "Chưa có",
+                  ReadonlyField(
+                    title: "Email",
+                    value: Provider.of<UserProvider>(context).user?.email ?? "Chưa có",
                   ),
                   // Không có mật khẩu nữa
                 ]),
               ],
             ),
-    );
-  }
-
-  Widget _buildAvatar() {
-    return Center(
-      child: Column(
-        children: [
-          const CircleAvatar(
-            radius: 50,
-            backgroundColor: Colors.teal,
-            child: Text(
-              "T",
-              style: TextStyle(fontSize: 40, color: Colors.white),
-            ),
-          ),
-          const SizedBox(height: 12),
-          GestureDetector(
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Chức năng đổi ảnh đại diện đang phát triển"),
-                ),
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.grey[800],
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Text(
-                "Đổi ảnh đại diện",
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _sectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        color: Colors.white70,
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-  }
-
-  Widget _buildInfoCard(List<Widget> children) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[900],
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(children: children),
-    );
-  }
-
-  Widget _buildEditableItem({
-    required String title,
-    required TextEditingController controller,
-    String? hint,
-    int maxLines = 1,
-    TextInputType keyboardType = TextInputType.text,
-  }) {
-    return Column(
-      children: [
-        ListTile(
-          title: Text(title, style: const TextStyle(color: Colors.white70)),
-          subtitle: TextField(
-            controller: controller,
-            style: const TextStyle(color: Colors.white),
-            maxLines: maxLines,
-            keyboardType: keyboardType,
-            decoration: InputDecoration(
-              hintText: hint ?? "Chưa có",
-              hintStyle: const TextStyle(color: Colors.grey),
-              border: InputBorder.none,
-            ),
-          ),
-        ),
-        const Divider(color: Colors.white12, height: 1),
-      ],
-    );
-  }
-
-  Widget _buildReadonlyItem(String title, String value) {
-    return Column(
-      children: [
-        ListTile(
-          title: Text(title, style: const TextStyle(color: Colors.white70)),
-          trailing: Text(value, style: const TextStyle(color: Colors.white)),
-        ),
-        const Divider(color: Colors.white12, height: 1),
-      ],
     );
   }
 
