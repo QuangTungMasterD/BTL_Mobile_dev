@@ -103,7 +103,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
+                    ? SizedBox(
+                        width: 20, // chiều rộng mong muốn
+                        height: 20, // chiều cao mong muốn
+                        child: const CircularProgressIndicator(
+                          color: Colors.white,
+                        ),
+                      )
                     : const Text(
                         "Register",
                         style: TextStyle(color: Colors.white),
