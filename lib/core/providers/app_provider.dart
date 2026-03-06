@@ -25,6 +25,10 @@ import 'package:btl_music_app/features/playing/data/services/play_back_state_ser
 import 'package:btl_music_app/features/playing/data/services/player_service.dart';
 import 'package:btl_music_app/features/profile/data/repo/user_repo.dart';
 import 'package:btl_music_app/features/profile/data/service/user_service.dart';
+import 'package:btl_music_app/features/search/bloc/search/search_landing_bloc.dart';
+import 'package:btl_music_app/features/search/data/repo/history_search_repo.dart';
+import 'package:btl_music_app/features/setting/bloc/theme_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'auth_provider.dart';
@@ -155,5 +159,13 @@ class AppProviders {
     Provider<CommentRepository>(
       create: (context) => CommentRepository(context.read<CommentService>()),
     ),
+
+    // history BLoC seach
+    Provider<SearchHistoryRepository>(create: (_) => SearchHistoryRepository()),
+BlocProvider<SearchLandingBloc>(
+  create: (context) => SearchLandingBloc(
+    repo: context.read<SearchHistoryRepository>(),
+  ),
+),
   ];
 }
