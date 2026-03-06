@@ -21,6 +21,7 @@ class LibraryScreen extends StatefulWidget {
 
 class _LibraryScreenState extends State<LibraryScreen> {
   SortOrder _sortOrder = SortOrder.defaultOrder;
+  bool _isGridView = false;
 
   void _toggleSortOrder() {
     setState(() {
@@ -34,14 +35,20 @@ class _LibraryScreenState extends State<LibraryScreen> {
     });
   }
 
-  Object _getSortIcon() {
+  void _toggleViewMode() {
+    setState(() {
+      _isGridView = !_isGridView;
+    });
+  }
+
+  IconData _getSortIcon() {
     switch (_sortOrder) {
       case SortOrder.newest:
-        return Icons.arrow_downward; // hoặc icon mũi tên xuống (mới nhất)
+        return Icons.arrow_downward;
       case SortOrder.oldest:
-        return Icons.arrow_upward; // mũi tên lên (cũ nhất)
+        return Icons.arrow_upward;
       default:
-        return Icons.swap_vert; // mặc định
+        return Icons.swap_vert;
     }
   }
 
@@ -52,7 +59,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       case SortOrder.oldest:
         return List.from(playlists)..sort((a, b) => a.createdAt.compareTo(b.createdAt));
       default:
-        return playlists; // giữ nguyên thứ tự từ provider
+        return playlists;
     }
   }
 
@@ -75,10 +82,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 child: Row(
                   children: [
                     IconButton(
-                      icon: Icon(
-                        _getSortIcon() as IconData?,
-                      ),
+                      icon: Icon(_getSortIcon()),
                       onPressed: _toggleSortOrder,
+                      tooltip: 'Sắp xếp theo thời gian',
                     ),
                     const SizedBox(width: 8),
                     const Text(
@@ -90,10 +96,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     ),
                     const Spacer(),
                     IconButton(
-                      icon: const Icon(Icons.grid_view),
-                      onPressed: () {
-                        
-                      },
+                      icon: Icon(_isGridView ? Icons.list : Icons.grid_view),
+                      onPressed: _toggleViewMode,
+                      tooltip: _isGridView ? 'Chế độ danh sách' : 'Chế độ lưới',
                     ),
                   ],
                 ),
@@ -106,63 +111,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     ? const Center(child: CircularProgressIndicator())
                     : playlistProvider.error != null
                         ? Center(child: Text('Lỗi: ${playlistProvider.error}'))
-                        : ListView(
-                            children: [
-                              LibraryItem(
-                                title: "Bài hát đã thích",
-                                showOptions: false,
-                                isLiked: true,
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const LoveListScreen(),
-                                    ),
-                                  );
-                                },
-                              ),
-                              LibraryItem(
-                                title: "Bài hát đã tải",
-                                isDownload: true,
-                                showOptions: false,
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const DownloadedSongsScreen(),
-                                    ),
-                                  );
-                                },
-                              ),
-                              ...playlists.map((playlist) {
-                                return LibraryItem(
-                                  title: playlist.name,
-                                  subtitle:
-                                      "Danh sách phát • ${playlist.songIds.length} bài hát",
-                                  isLiked: false,
-                                  coverUrl: playlist.coverUrl,
-                                  onDelete: () => playlistProvider.deletePlaylist(playlist.id),
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => SongListScreen(
-                                          title: playlist.name,
-                                          playlistId: playlist.id,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                );
-                              }).toList(),
-                              LibraryItem(
-                                title: "Thêm danh sách phát",
-                                showOptions: false,
-                                onTap: () =>
-                                    _showCreatePlaylistDialog(context, playlistProvider),
-                              ),
-                            ],
-                          ),
+                        : _isGridView
+                            ? _buildGridView(playlists, playlistProvider)
+                            : _buildListView(playlists, playlistProvider),
               ),
             ],
           ),
@@ -172,6 +123,127 @@ class _LibraryScreenState extends State<LibraryScreen> {
         mainAxisSize: MainAxisSize.min,
         children: const [MiniPlayer(), AppBottomNav(currentIndex: 0)],
       ),
+    );
+  }
+
+  Widget _buildListView(List<PlayListModel> playlists, PlayListProvider provider) {
+    return ListView(
+      children: [
+        LibraryItem(
+          title: "Bài hát đã thích",
+          showOptions: false,
+          isLiked: true,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const LoveListScreen()),
+            );
+          },
+        ),
+        LibraryItem(
+          title: "Bài hát đã tải",
+          isDownload: true,
+          showOptions: false,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const DownloadedSongsScreen()),
+            );
+          },
+        ),
+        ...playlists.map((playlist) {
+          return LibraryItem(
+            title: playlist.name,
+            subtitle: "Danh sách phát • ${playlist.songIds.length} bài hát",
+            coverUrl: playlist.coverUrl,
+            onDelete: () => provider.deletePlaylist(playlist.id),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => SongListScreen(
+                    title: playlist.name,
+                    playlistId: playlist.id,
+                  ),
+                ),
+              );
+            },
+          );
+        }).toList(),
+        LibraryItem(
+          title: "Thêm danh sách phát",
+          showOptions: false,
+          onTap: () => _showCreatePlaylistDialog(context, provider),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGridView(List<PlayListModel> playlists, PlayListProvider provider) {
+    return ListView(
+      children: [
+        // Các item tĩnh vẫn giữ dạng list (hoặc có thể tùy chỉnh)
+        LibraryItem(
+          title: "Bài hát đã thích",
+          showOptions: false,
+          isLiked: true,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const LoveListScreen()),
+            );
+          },
+        ),
+        LibraryItem(
+          title: "Bài hát đã tải",
+          isDownload: true,
+          showOptions: false,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const DownloadedSongsScreen()),
+            );
+          },
+        ),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 0.9,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+          ),
+          itemCount: playlists.length,
+          itemBuilder: (context, index) {
+            final playlist = playlists[index];
+            return LibraryItem(
+              title: playlist.name,
+              subtitle: "${playlist.songIds.length} bài hát",
+              coverUrl: playlist.coverUrl,
+              onDelete: () => provider.deletePlaylist(playlist.id),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => SongListScreen(
+                      title: playlist.name,
+                      playlistId: playlist.id,
+                    ),
+                  ),
+                );
+              },
+              isGrid: true,
+            );
+          },
+        ),
+        const SizedBox(height: 16),
+        LibraryItem(
+          title: "Thêm danh sách phát",
+          showOptions: false,
+          onTap: () => _showCreatePlaylistDialog(context, provider),
+        ),
+      ],
     );
   }
 
