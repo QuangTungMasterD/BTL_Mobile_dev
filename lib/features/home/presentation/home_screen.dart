@@ -133,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ],
                               ),
                             ),
-                            Icon(Icons.arrow_forward_ios, size: 16),
+                            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white),
                           ],
                         ),
                       ),
