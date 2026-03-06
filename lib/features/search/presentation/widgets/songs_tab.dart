@@ -1,41 +1,42 @@
-import 'package:btl_music_app/core/providers/song_provider.dart';
-import 'package:btl_music_app/core/widgets/song_item.dart';
-import 'package:btl_music_app/features/music/data/models/song_model.dart';
+// features/search/presentation/widgets/songs_tab.dart
+import 'package:btl_music_app/features/search/bloc/search_result/search_bloc.dart';
+import 'package:btl_music_app/features/search/bloc/search_result/search_state.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:btl_music_app/core/widgets/song_item.dart';
 
 class SongsTab extends StatelessWidget {
-  final String query;
-  const SongsTab({super.key, required this.query});
+  const SongsTab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<SongModel>>(
-      future: context.read<SongProvider>().searchSongs(query),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+    return BlocBuilder<SearchBloc, SearchState>(
+      builder: (context, state) {
+        if (state is SearchLoading) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (snapshot.hasError) {
-          return Center(child: Text('Lỗi: ${snapshot.error}'));
+        if (state is SearchError) {
+          return Center(child: Text('Lỗi: ${state.message}'));
         }
-        final results = snapshot.data ?? [];
-        if (results.isEmpty) {
-          return const Center(child: Text("Không tìm thấy bài hát nào"));
+        if (state is SearchLoaded) {
+          final results = state.songs;
+          if (results.isEmpty) {
+            return const Center(child: Text("Không tìm thấy bài hát nào"));
+          }
+          return ListView.builder(
+            itemCount: results.length,
+            itemBuilder: (context, index) {
+              final song = results[index];
+              return SongItem(
+                songId: song.id,
+                title: song.title,
+                artist: song.artist,
+                image: song.thumbnail,
+              );
+            },
+          );
         }
-
-        return ListView.builder(
-          itemCount: results.length,
-          itemBuilder: (context, index) {
-            final song = results[index];
-            return SongItem(
-              songId: song.id,
-              title: song.title,
-              artist: song.artist,
-              image: song.thumbnail,
-            );
-          },
-        );
+        return const SizedBox.shrink();
       },
     );
   }

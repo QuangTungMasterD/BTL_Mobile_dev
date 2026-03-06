@@ -1,12 +1,14 @@
-import 'package:btl_music_app/core/providers/artist_provider.dart';
-import 'package:btl_music_app/core/providers/song_provider.dart';
+// features/search/presentation/search_result_screen.dart
+import 'package:btl_music_app/features/search/bloc/search_result/search_bloc.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:btl_music_app/core/widgets/bottom.dart';
 import 'package:btl_music_app/core/widgets/mini_player.dart';
+import 'package:btl_music_app/features/search/bloc/search_result/search_event.dart';
+import 'package:btl_music_app/features/search/bloc/search_result/search_state.dart';
 import 'package:btl_music_app/features/search/presentation/widgets/featured_tab.dart';
 import 'package:btl_music_app/features/search/presentation/widgets/songs_tab.dart';
 import 'package:btl_music_app/features/search/presentation/widgets/artists_tab.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class SearchResultScreen extends StatefulWidget {
   final String query;
@@ -31,7 +33,7 @@ class _SearchResultScreenState extends State<SearchResultScreen> with SingleTick
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_hasSearchedSongs) {
         _hasSearchedSongs = true;
-        context.read<SongProvider>().searchSongs(widget.query);
+        context.read<SearchBloc>().add(SearchSongs(widget.query));
       }
     });
   }
@@ -43,7 +45,7 @@ class _SearchResultScreenState extends State<SearchResultScreen> with SingleTick
     if (_tabController.index == 2) {
       if (!_hasSearchedArtists) {
         _hasSearchedArtists = true;
-        context.read<ArtistProvider>().searchArtists(widget.query);
+        context.read<SearchBloc>().add(SearchArtists(widget.query));
       }
     }
   }
@@ -79,9 +81,9 @@ class _SearchResultScreenState extends State<SearchResultScreen> with SingleTick
       body: TabBarView(
         controller: _tabController,
         children: [
-          FeaturedTab(query: widget.query),
-          SongsTab(query: widget.query),
-          ArtistsTab(query: widget.query),
+          FeaturedTab(),
+          SongsTab(),
+          ArtistsTab(),
         ],
       ),
       bottomNavigationBar: const Column(

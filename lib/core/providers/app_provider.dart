@@ -26,7 +26,9 @@ import 'package:btl_music_app/features/playing/data/services/player_service.dart
 import 'package:btl_music_app/features/profile/data/repo/user_repo.dart';
 import 'package:btl_music_app/features/profile/data/service/user_service.dart';
 import 'package:btl_music_app/features/search/bloc/search/search_landing_bloc.dart';
+import 'package:btl_music_app/features/search/bloc/search_result/search_bloc.dart';
 import 'package:btl_music_app/features/search/data/repo/history_search_repo.dart';
+import 'package:btl_music_app/features/search/data/repo/search_repo.dart';
 import 'package:btl_music_app/features/setting/bloc/theme_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -160,12 +162,23 @@ class AppProviders {
       create: (context) => CommentRepository(context.read<CommentService>()),
     ),
 
+    /// ====== BLoC ======
     // history BLoC seach
     Provider<SearchHistoryRepository>(create: (_) => SearchHistoryRepository()),
-BlocProvider<SearchLandingBloc>(
-  create: (context) => SearchLandingBloc(
-    repo: context.read<SearchHistoryRepository>(),
-  ),
-),
+    BlocProvider<SearchLandingBloc>(
+      create: (context) =>
+          SearchLandingBloc(repo: context.read<SearchHistoryRepository>()),
+    ),
+
+    Provider<SearchRepository>(
+      create: (context) => SearchRepository(
+        songRepo: context.read<SongRepository>(),
+        artistRepo: context.read<ArtistRepository>(),
+      ),
+    ),
+    BlocProvider<SearchBloc>(
+      create: (context) =>
+          SearchBloc(repository: context.read<SearchRepository>()),
+    ),
   ];
 }
