@@ -1,5 +1,5 @@
-import 'package:btl_music_app/features/profile/bloc/profile/profile_event.dart';
-import 'package:btl_music_app/features/profile/bloc/profile/profile_state.dart';
+import 'package:btl_music_app/features/profile/bloc/profile_event.dart';
+import 'package:btl_music_app/features/profile/bloc/profile_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:btl_music_app/features/profile/data/repo/user_repo.dart';
 

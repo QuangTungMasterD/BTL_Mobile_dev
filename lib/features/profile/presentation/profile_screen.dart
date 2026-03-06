@@ -1,6 +1,6 @@
-import 'package:btl_music_app/features/profile/bloc/profile/profile_bloc.dart';
-import 'package:btl_music_app/features/profile/bloc/profile/profile_state.dart';
-import 'package:btl_music_app/features/profile/bloc/profile/profile_event.dart';
+import 'package:btl_music_app/features/profile/bloc/profile_bloc.dart';
+import 'package:btl_music_app/features/profile/bloc/profile_state.dart';
+import 'package:btl_music_app/features/profile/bloc/profile_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:btl_music_app/core/widgets/bottom.dart';

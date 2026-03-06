@@ -23,7 +23,7 @@ import 'package:btl_music_app/features/notify/data/services/notification_service
 import 'package:btl_music_app/features/playing/data/repo/player_repo.dart';
 import 'package:btl_music_app/features/playing/data/services/play_back_state_service.dart';
 import 'package:btl_music_app/features/playing/data/services/player_service.dart';
-import 'package:btl_music_app/features/profile/bloc/profile/profile_bloc.dart';
+import 'package:btl_music_app/features/profile/bloc/profile_bloc.dart';
 import 'package:btl_music_app/features/profile/data/repo/user_repo.dart';
 import 'package:btl_music_app/features/profile/data/service/user_service.dart';
 import 'package:btl_music_app/features/search/bloc/search/search_landing_bloc.dart';
