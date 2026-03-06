@@ -1,42 +1,67 @@
 // downloaded_songs_screen.dart
+import 'package:btl_music_app/features/library/presentation/widgets/seach_playlist_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:btl_music_app/core/database/database_helper.dart';
-import 'package:btl_music_app/core/widgets/song_item.dart';
+import 'package:btl_music_app/features/music/data/models/song_model.dart';
 
-class DownloadedSongsScreen extends StatelessWidget {
+class DownloadedSongsScreen extends StatefulWidget {
   const DownloadedSongsScreen({super.key});
+
+  @override
+  State<DownloadedSongsScreen> createState() => _DownloadedSongsScreenState();
+}
+
+class _DownloadedSongsScreenState extends State<DownloadedSongsScreen> {
+  List<SongModel> _songs = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSongs();
+  }
+
+  Future<void> _loadSongs() async {
+    final data = await DatabaseHelper.instance.getDownloadedSongs();
+    // Chuyển đổi từ Map sang SongModel
+    final songs = data.map((map) {
+      return SongModel(
+        id: map['songId'] as String,
+        title: map['title'] as String,
+        artist: map['artist'] as String,
+        thumbnailUrl: map['thumbnailUrl'] as String? ?? '',
+        artistId: '',
+        youtubeId: '',
+        duration: 0,
+        playCount: 0,
+        likeCount: 0,
+      );
+    }).toList();
+    if (mounted) {
+      setState(() {
+        _songs = songs;
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Đã tải về')),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: DatabaseHelper.instance.getDownloadedSongs(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final songs = snapshot.data ?? [];
-          if (songs.isEmpty) {
-            return const Center(child: Text('Chưa có bài hát nào được tải'));
-          }
-          return ListView.builder(
-            itemCount: songs.length,
-            itemBuilder: (context, index) {
-              final song = songs[index];
-              // Dùng SongItem để hiển thị nhất quán
-              return SongItem(
-                songId: song['songId'],
-                title: song['title'],
-                artist: song['artist'],
-                image: song['thumbnailUrl'] ?? '',
-                onTap: () {
-                  // Có thể phát nhạc offline? (chưa có file audio, nên chỉ hiển thị thông tin)
+      body: SafeArea(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SearchableSongList(
+                songs: _songs,
+                title: "Đã tải về",
+                onSongTap: (song) {
+                  // Xử lý phát nhạc offline (nếu có)
                 },
-              );
-            },
-          );
-        },
+                trailing: IconButton(
+                  icon: const Icon(Icons.more_vert),
+                  onPressed: () {},
+                ),
+              ),
       ),
     );
   }

@@ -1,93 +1,63 @@
 import 'package:btl_music_app/core/providers/love_list_provider.dart';
+import 'package:btl_music_app/features/library/presentation/widgets/seach_playlist_layout.dart';
 import 'package:btl_music_app/features/music/data/models/song_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:btl_music_app/core/providers/song_provider.dart';
-import 'package:btl_music_app/core/widgets/song_item.dart';
 
-class LoveListScreen extends StatelessWidget {
+class LoveListScreen extends StatefulWidget {
   const LoveListScreen({super.key});
+
+  @override
+  State<LoveListScreen> createState() => _LoveListScreenState();
+}
+
+class _LoveListScreenState extends State<LoveListScreen> {
+  List<SongModel> _songs = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSongs();
+  }
+
+  Future<void> _loadSongs() async {
+    final loveProvider = context.read<LoveListProvider>();
+    final songProvider = context.read<SongProvider>();
+    final songIds = loveProvider.songIds;
+
+    // Load song song tất cả bài hát
+    final futures = songIds.map((id) => songProvider.getSongById(id));
+    final songs = await Future.wait(futures);
+
+    if (mounted) {
+      setState(() {
+        _songs = songs.whereType<SongModel>().toList();
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            /// HEADER
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 0),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back),
-                  ),
-                  const Expanded(
-                    child: Text(
-                      "Yêu thích",
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  IconButton(onPressed: () {}, icon: const Icon(Icons.search)),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.more_vert),
-                  ),
-                ],
-              ),
-            ),
-
-            /// LIST
-            Expanded(
-              child: Consumer2<LoveListProvider, SongProvider>(
-                builder: (context, loveListProvider, songProvider, child) {
-                  final songIds = loveListProvider.songIds;
-
-                  if (songIds.isEmpty) {
-                    return const Center(
-                      child: Text("Chưa có bài hát yêu thích nào"),
-                    );
-                  }
-
-                  return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 0),
-                    itemCount: songIds.length,
-                    itemBuilder: (context, index) {
-                      final songId = songIds[index];
-                      return FutureBuilder<SongModel?>(
-                        future: songProvider.getSongById(songId),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const ListTile(title: Text("Đang tải..."));
-                          }
-                          if (!snapshot.hasData) {
-                            return const ListTile(
-                              title: Text("Không tìm thấy bài hát"),
-                            );
-                          }
-                          final song = snapshot.data!;
-                          return SongItem(
-                            title: song.title,
-                            artist: song.artist,
-                            image: song.thumbnail,
-                            songId: song.id,
-                            onTap: () {
-                              // Xử lý phát nhạc
-                            },
-                          );
-                        },
-                      );
-                    },
-                  );
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SearchableSongList(
+                songs: _songs,
+                title: "Yêu thích",
+                onSongTap: (song) {
+                  // Xử lý phát nhạc
                 },
+                trailing: IconButton(
+                  icon: const Icon(Icons.more_vert),
+                  onPressed: () {
+                    // Có thể thêm menu tùy chọn ở đây
+                  },
+                ),
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
