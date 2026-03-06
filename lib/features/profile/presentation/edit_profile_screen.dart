@@ -1,9 +1,12 @@
-import 'package:btl_music_app/core/providers/user_provider.dart';
-import 'package:btl_music_app/features/profile/presentation/widget/date_select.dart';
-import 'package:btl_music_app/features/profile/presentation/widget/edit_field.dart';
-import 'package:btl_music_app/features/profile/presentation/widget/gender_select.dart';
+import 'package:btl_music_app/features/profile/bloc/profile/profile_bloc.dart';
+import 'package:btl_music_app/features/profile/bloc/profile/profile_event.dart';
+import 'package:btl_music_app/features/profile/bloc/profile/profile_state.dart';
+import 'package:btl_music_app/features/profile/data/models/user_model.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:btl_music_app/features/profile/presentation/widget/edit_field.dart';
+import 'package:btl_music_app/features/profile/presentation/widget/date_select.dart';
+import 'package:btl_music_app/features/profile/presentation/widget/gender_select.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -13,7 +16,6 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  bool _isLoading = true;
   bool _isSaving = false;
 
   late TextEditingController _displayNameController;
@@ -33,84 +35,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _phoneController = TextEditingController();
     _bioController = TextEditingController();
     _avatarController = TextEditingController();
-
-    // Load dữ liệu sau khi widget build xong
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadUserData();
-    });
-  }
-
-  Future<void> _loadUserData() async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final user = userProvider.user;
-
-    if (user != null) {
-      setState(() {
-        _displayNameController.text = user.displayName;
-        _fullNameController.text = user.fullName;
-        _phoneController.text = user.phone;
-        _bioController.text = user.bio;
-        _birthday = user.birthday;
-        _gender = user.gender ? "Nam" : "Nữ";
-        _isLoading = false;
-        _avatarController.text = user.avatar;
-      });
-    } else {
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Không tìm thấy thông tin người dùng")),
-      );
-    }
-  }
-
-  Future<void> _saveChanges() async {
-    if (_displayNameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Tên hiển thị không được để trống")),
-      );
-      return;
-    }
-
-    setState(() => _isSaving = true);
-
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final currentUser = userProvider.user;
-
-    if (currentUser == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Không tìm thấy thông tin user")),
-      );
-      setState(() => _isSaving = false);
-      return;
-    }
-
-    try {
-      final updatedUser = currentUser.copyWith(
-        displayName: _displayNameController.text.trim(),
-        fullName: _fullNameController.text.trim(),
-        phone: _phoneController.text.trim(),
-        bio: _bioController.text.trim(),
-        birthday: _birthday,
-        gender: _gender == "Nam",
-      );
-
-      await userProvider.updateProfile(updatedUser);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Cập nhật hồ sơ thành công!"),
-          backgroundColor: Colors.green,
-        ),
-      );
-
-      Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Lỗi khi lưu: $e")));
-    }
-
-    setState(() => _isSaving = false);
   }
 
   @override
@@ -121,6 +45,58 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _bioController.dispose();
     _avatarController.dispose();
     super.dispose();
+  }
+
+  // Cập nhật controllers từ user loaded
+  void _updateControllers(UserModel user) {
+    _displayNameController.text = user.displayName;
+    _fullNameController.text = user.fullName;
+    _phoneController.text = user.phone;
+    _bioController.text = user.bio;
+    _avatarController.text = user.avatar;
+    _birthday = user.birthday;
+    _gender = user.gender ? "Nam" : "Nữ";
+  }
+
+  Future<void> _saveChanges(BuildContext context, UserModel currentUser) async {
+    if (_displayNameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Tên hiển thị không được để trống")),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    try {
+      final updatedUser = currentUser.copyWith(
+        displayName: _displayNameController.text.trim(),
+        fullName: _fullNameController.text.trim(),
+        phone: _phoneController.text.trim(),
+        bio: _bioController.text.trim(),
+        birthday: _birthday,
+        gender: _gender == "Nam",
+        avatar: _avatarController.text.trim(),
+      );
+
+      // Gửi event UpdateProfile
+      context.read<ProfileBloc>().add(UpdateProfile(updatedUser));
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Cập nhật hồ sơ thành công!"),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Lỗi khi lưu: $e")),
+      );
+    } finally {
+      setState(() => _isSaving = false);
+    }
   }
 
   @override
@@ -137,28 +113,42 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: SizedBox(
                 width: 20,
                 height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
-                ),
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
               ),
             )
           else
             IconButton(
               icon: const Icon(Icons.save, color: Colors.blue),
-              onPressed: _isSaving ? null : _saveChanges,
+              onPressed: () {
+                final state = context.read<ProfileBloc>().state;
+                if (state is ProfileLoaded) {
+                  _saveChanges(context, state.user);
+                }
+              },
               tooltip: "Lưu thay đổi",
             ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView(
+      body: BlocBuilder<ProfileBloc, ProfileState>(
+        builder: (context, state) {
+          if (state is ProfileLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (state is ProfileError) {
+            return Center(child: Text('Lỗi: ${state.message}'));
+          }
+          if (state is ProfileLoaded) {
+            final user = state.user;
+            // Cập nhật controllers nếu chưa có dữ liệu (lần đầu)
+            if (_displayNameController.text.isEmpty) {
+              _updateControllers(user);
+            }
+            return ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 AvatarSection(avatarUrl: _avatarController.text),
                 const SizedBox(height: 30),
-                SectionTitle(title: "Giới thiệu về bạn"),
+                const SectionTitle(title: "Giới thiệu về bạn"),
                 const SizedBox(height: 10),
                 InfoCard(children: [
                   EditableField(
@@ -175,20 +165,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   DateSelector(
                     title: "Sinh nhật",
                     date: _birthday,
-                    onDateSelected: (newDate) =>
-                        setState(() => _birthday = newDate),
+                    onDateSelected: (newDate) => setState(() => _birthday = newDate),
                   ),
                   GenderSelector(
                     gender: _gender,
-                    onGenderChanged: (newGender) {
-                      setState(() {
-                        _gender = newGender;
-                      });
-                    },
-                  )
+                    onGenderChanged: (newGender) => setState(() => _gender = newGender),
+                  ),
                 ]),
                 const SizedBox(height: 25),
-                SectionTitle(title: "Thông tin tài khoản"),
+                const SectionTitle(title: "Thông tin tài khoản"),
                 const SizedBox(height: 10),
                 InfoCard(children: [
                   EditableField(
@@ -204,13 +189,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                   ReadonlyField(
                     title: "Email",
-                    value: Provider.of<UserProvider>(context).user?.email ?? "Chưa có",
+                    value: user.email,
                   ),
-                  // Không có mật khẩu nữa
                 ]),
               ],
-            ),
+            );
+          }
+          // ProfileInitial: tự động load
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            context.read<ProfileBloc>().add(LoadProfile());
+          });
+          return const Center(child: CircularProgressIndicator());
+        },
+      ),
     );
   }
-
 }
