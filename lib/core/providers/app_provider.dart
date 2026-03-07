@@ -38,7 +38,7 @@ import 'auth_provider.dart';
 
 class AppProviders {
   static List<SingleChildWidget> providers = [
-    ChangeNotifierProvider<AppTheme>(create: (_) => AppTheme()),
+    // ChangeNotifierProvider<AppTheme>(create: (_) => AppTheme()),
 
     /// Auth
     Provider<AuthService>(create: (_) => AuthService()),

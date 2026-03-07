@@ -1,28 +1,33 @@
+import 'package:btl_music_app/features/setting/bloc/theme_event.dart';
+import 'package:btl_music_app/features/setting/bloc/theme_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:btl_music_app/features/setting/bloc/theme_event.dart';
-import 'package:btl_music_app/features/setting/bloc/theme_state.dart';
 
 class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
-  static const String _themeModeKey = 'theme_mode';
-
-  ThemeBloc() : super(ThemeState(ThemeMode.system)) {
-    _loadThemeMode();
-    on<ChangeTheme>((event, emit) async {
-      emit(ThemeState(event.themeMode));
-      _saveThemeMode(event.themeMode);
-    });
+  ThemeBloc() : super(ThemeState.initial()) {
+    on<LoadTheme>(_onLoadTheme);
+    on<ChangeTheme>(_onChangeTheme);
   }
 
-  Future<void> _loadThemeMode() async {
+  Future<void> _onLoadTheme(LoadTheme event, Emitter<ThemeState> emit) async {
     final prefs = await SharedPreferences.getInstance();
-    final index = prefs.getInt(_themeModeKey) ?? ThemeMode.system.index;
-    emit(ThemeState(ThemeMode.values[index]));
+    final savedTheme = prefs.getString('themeMode');
+    ThemeMode themeMode;
+    if (savedTheme != null) {
+      themeMode = ThemeMode.values.firstWhere(
+        (e) => e.name == savedTheme,
+        orElse: () => ThemeMode.dark,
+      );
+    } else {
+      themeMode = ThemeMode.dark;
+    }
+    emit(state.copyWith(themeMode: themeMode));
   }
 
-  Future<void> _saveThemeMode(ThemeMode mode) async {
+  Future<void> _onChangeTheme(ChangeTheme event, Emitter<ThemeState> emit) async {
+    emit(state.copyWith(themeMode: event.themeMode));
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_themeModeKey, mode.index);
+    await prefs.setString('themeMode', event.themeMode.name);
   }
 }
