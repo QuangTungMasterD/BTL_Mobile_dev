@@ -35,20 +35,41 @@ class _TopChartIndicatorState extends State<TopChartIndicator> {
 
     final song = widget.topSongs[index];
     const tooltipSize = 60.0;
-
     final barChartHeight = 250.0;
-    final maxY = widget.topSongs
+    final maxY =
+        widget.topSongs
             .map((e) => e.playCount.toDouble())
             .reduce((a, b) => a > b ? a : b) *
         1.1;
     final value = widget.topSongs[index].playCount.toDouble();
-    final barTop = position.dy + (1 - value / maxY) * barChartHeight;
 
-    double top = barTop - tooltipSize + 20;
+    // Lấy renderBox của BarChart
+    final renderBox = context.findRenderObject() as RenderBox;
+    final chartOffset = renderBox.localToGlobal(Offset.zero);
+    final chartTop = chartOffset.dy;
+    final barTop = chartTop + (1 - value / maxY) * barChartHeight;
+
+    // Tính tọa độ x của tâm cột
+    final double barWidth = 16;
+    final double totalWidth = MediaQuery.of(context).size.width - 32;
+    final double spacing =
+        (totalWidth - (barWidth * widget.topSongs.length)) /
+        (widget.topSongs.length - 1);
+    final double barCenterX =
+        16 + (index * (barWidth + spacing)) + barWidth / 2;
+
+    double left = barCenterX - tooltipSize / 2;
+    double top = barTop - tooltipSize + 35; // đặt cách đỉnh cột 5px
+
+    // Điều chỉnh tránh tràn
+    if (left < 0) left = 5;
+    if (left + tooltipSize > MediaQuery.of(context).size.width) {
+      left = MediaQuery.of(context).size.width - tooltipSize - 5;
+    }
 
     _tooltipEntry = OverlayEntry(
       builder: (context) => Positioned(
-        left: 90 * (index + 1),
+        left: left,
         top: top,
         width: tooltipSize,
         height: tooltipSize,
@@ -134,33 +155,42 @@ class _TopChartIndicatorState extends State<TopChartIndicator> {
                   touchTooltipData: BarTouchTooltipData(
                     getTooltipItem: (group, groupIndex, rod, rodIndex) => null,
                   ),
-                  touchCallback: (FlTouchEvent event, BarTouchResponse? response) {
-                    if (response == null || response.spot == null) {
-                      _removeTooltip();
-                      setState(() => _touchedIndex = null);
-                      return;
-                    }
-                    final index = response.spot!.touchedBarGroupIndex;
-                    if (index != _touchedIndex) {
-                      setState(() => _touchedIndex = index);
-                      final renderBox = context.findRenderObject() as RenderBox;
-                      final position = renderBox.localToGlobal(Offset.zero);
-                      final double barWidth = 16;
-                      final double totalWidth = MediaQuery.of(context).size.width - 32;
-                      final double spacing = (totalWidth - (barWidth * widget.topSongs.length)) /
-                          (widget.topSongs.length - 1);
-                      final double barCenterX = 16 +
-                          (index * (barWidth + spacing)) +
-                          barWidth / 2;
-                      final Offset barCenter = Offset(barCenterX, position.dy);
-                      _showTooltip(
-                        context,
-                        barCenter,
-                        index,
-                        colors[index % colors.length],
-                      );
-                    }
-                  },
+                  touchCallback:
+                      (FlTouchEvent event, BarTouchResponse? response) {
+                        if (response == null || response.spot == null) {
+                          _removeTooltip();
+                          setState(() => _touchedIndex = null);
+                          return;
+                        }
+                        final index = response.spot!.touchedBarGroupIndex;
+                        if (index != _touchedIndex) {
+                          setState(() => _touchedIndex = index);
+                          final renderBox =
+                              context.findRenderObject() as RenderBox;
+                          final position = renderBox.localToGlobal(Offset.zero);
+                          final double barWidth = 16;
+                          final double totalWidth =
+                              MediaQuery.of(context).size.width - 32;
+                          final double spacing =
+                              (totalWidth -
+                                  (barWidth * widget.topSongs.length)) /
+                              (widget.topSongs.length - 1);
+                          final double barCenterX =
+                              16 +
+                              (index * (barWidth + spacing)) +
+                              barWidth / 2;
+                          final Offset barCenter = Offset(
+                            barCenterX,
+                            position.dy,
+                          );
+                          _showTooltip(
+                            context,
+                            barCenter,
+                            index,
+                            colors[index % colors.length],
+                          );
+                        }
+                      },
                 ),
                 titlesData: FlTitlesData(
                   leftTitles: AxisTitles(
