@@ -1,12 +1,16 @@
-import 'package:btl_music_app/core/providers/play_list_provider.dart';
+import 'package:btl_music_app/features/library/bloc/playlist/playlist_bloc.dart';
+import 'package:btl_music_app/features/library/bloc/playlist/playlist_event.dart';
+import 'package:btl_music_app/features/library/bloc/playlist/playlist_state.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:btl_music_app/core/providers/auth_provider.dart';
 import 'package:btl_music_app/core/widgets/bottom.dart';
 import 'package:btl_music_app/core/widgets/header.dart';
 import 'package:btl_music_app/core/widgets/mini_player.dart';
 import 'package:btl_music_app/features/library/data/models/play_list_model.dart';
+import 'package:btl_music_app/features/library/data/repo/play_list_repo.dart';
 import 'package:btl_music_app/features/library/presentation/widgets/playlist_grid_view.dart';
 import 'package:btl_music_app/features/library/presentation/widgets/playlist_list_view.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 enum SortOrder { newest, oldest, defaultOrder }
 
@@ -63,76 +67,93 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final playlistProvider = context.watch<PlayListProvider>();
-    final playlists = _sortPlaylists(playlistProvider.playlists);
+    final authProvider = context.watch<AuthUserProvider>();
+    final userId = authProvider.user?.uid ?? '';
 
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ProfileHeader(title: 'Thư viện'),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(_getSortIcon()),
-                      onPressed: _toggleSortOrder,
-                      tooltip: 'Sắp xếp theo thời gian',
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      "Gần đây",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+    return BlocProvider(
+      create: (context) => PlaylistBloc(
+        repository: context.read<PlayListRepository>(),
+      )..add(LoadPlaylists(userId)),
+      child: Scaffold(
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ProfileHeader(title: 'Thư viện'),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(_getSortIcon()),
+                        onPressed: _toggleSortOrder,
+                        tooltip: 'Sắp xếp theo thời gian',
                       ),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      icon: Icon(_isGridView ? Icons.list : Icons.grid_view),
-                      onPressed: _toggleViewMode,
-                      tooltip: _isGridView ? 'Chế độ danh sách' : 'Chế độ lưới',
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      const Text(
+                        "Gần đây",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: Icon(_isGridView ? Icons.list : Icons.grid_view),
+                        onPressed: _toggleViewMode,
+                        tooltip: _isGridView ? 'Chế độ danh sách' : 'Chế độ lưới',
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-
-              const SizedBox(height: 20),
-
-              Expanded(
-                child: playlistProvider.isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : playlistProvider.error != null
-                        ? Center(child: Text('Lỗi: ${playlistProvider.error}'))
-                        : _isGridView
-                          ? PlaylistGridView(
-                              playlists: playlists,
-                              provider: playlistProvider,
-                              onCreatePlaylist: () => _showCreatePlaylistDialog(context, playlistProvider),
-                            )
-                          : PlaylistListView(
-                              playlists: playlists,
-                              provider: playlistProvider,
-                              onCreatePlaylist: () => _showCreatePlaylistDialog(context, playlistProvider),
-                            ),
-              ),
-            ],
+                const SizedBox(height: 20),
+                Expanded(
+                  child: BlocBuilder<PlaylistBloc, PlaylistState>(
+                    builder: (context, state) {
+                      if (state.isLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (state.error != null) {
+                        return Center(child: Text('Lỗi: ${state.error}'));
+                      }
+                      final playlists = _sortPlaylists(state.playlists);
+                      if (_isGridView) {
+                        return PlaylistGridView(
+                          playlists: playlists,
+                          bloc: context.read<PlaylistBloc>(),
+                          userId: userId,
+                          onCreatePlaylist: () => _showCreatePlaylistDialog(context),
+                        );
+                      } else {
+                        return PlaylistListView(
+                          playlists: playlists,
+                          bloc: context.read<PlaylistBloc>(),
+                          userId: userId,
+                          onCreatePlaylist: () => _showCreatePlaylistDialog(context),
+                        );
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: const [MiniPlayer(), AppBottomNav(currentIndex: 0)],
+        bottomNavigationBar: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [MiniPlayer(), AppBottomNav(currentIndex: 0)],
+        ),
       ),
     );
   }
 
-  void _showCreatePlaylistDialog(BuildContext context, PlayListProvider provider) {
+  void _showCreatePlaylistDialog(BuildContext context) {
     final controller = TextEditingController();
+    final bloc = context.read<PlaylistBloc>();
+    final userId = context.read<AuthUserProvider>().user?.uid ?? '';
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -150,7 +171,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
           ElevatedButton(
             onPressed: () {
               if (controller.text.trim().isNotEmpty) {
-                provider.createPlaylist(controller.text.trim(), null);
+                bloc.add(CreatePlaylist(userId, controller.text.trim(), null));
                 Navigator.pop(ctx);
               }
             },

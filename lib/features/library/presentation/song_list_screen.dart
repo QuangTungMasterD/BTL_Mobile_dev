@@ -1,55 +1,40 @@
-import 'package:btl_music_app/core/providers/play_list_provider.dart';
-import 'package:btl_music_app/core/providers/song_provider.dart';
+import 'package:btl_music_app/features/library/bloc/playlist_songs/playlist_songs_bloc.dart';
+import 'package:btl_music_app/features/library/bloc/playlist_songs/playlist_songs_event.dart';
+import 'package:btl_music_app/features/library/bloc/playlist_songs/playlist_songs_state.dart';
+import 'package:btl_music_app/features/library/data/repo/play_list_repo.dart';
+import 'package:btl_music_app/features/music/data/repo/song_repo.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:btl_music_app/features/library/presentation/widgets/seach_playlist_layout.dart';
 import 'package:btl_music_app/core/widgets/bottom.dart';
 import 'package:btl_music_app/core/widgets/mini_player.dart';
-import 'package:btl_music_app/features/library/presentation/widgets/seach_playlist_layout.dart';
-import 'package:btl_music_app/features/music/data/models/song_model.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-class SongListScreen extends StatefulWidget {
+class SongListScreen extends StatelessWidget {
   final String playlistId;
   final String title;
 
   const SongListScreen({super.key, required this.playlistId, required this.title});
 
   @override
-  State<SongListScreen> createState() => _SongListScreenState();
-}
-
-class _SongListScreenState extends State<SongListScreen> {
-  List<SongModel> _songs = [];
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadSongs();
-  }
-
-  Future<void> _loadSongs() async {
-    final playlistProvider = context.read<PlayListProvider>();
-    final songProvider = context.read<SongProvider>();
-    final playlist = playlistProvider.playlists.firstWhere((p) => p.id == widget.playlistId);
-    final futures = playlist.songIds.map((id) => songProvider.getSongById(id));
-    final songs = await Future.wait(futures);
-    if (mounted) {
-      setState(() {
-        _songs = songs.whereType<SongModel>().toList();
-        _isLoading = false;
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : SearchableSongList(
-                songs: _songs,
-                title: widget.title,
+    return BlocProvider(
+      create: (context) => PlaylistSongsBloc(
+        playlistRepo: context.read<PlayListRepository>(),
+        songRepo: context.read<SongRepository>(),
+      )..add(LoadPlaySongslist(playlistId)),
+      child: Scaffold(
+        body: SafeArea(
+          child: BlocBuilder<PlaylistSongsBloc, PlaylistSongsState>(
+            builder: (context, state) {
+              if (state.isLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (state.error != null) {
+                return Center(child: Text('Lỗi: ${state.error}'));
+              }
+              return SearchableSongList(
+                songs: state.songs,
+                title: state.playlistName ?? title,
                 onSongTap: (song) {
                   // Xử lý phát nhạc
                 },
@@ -57,11 +42,14 @@ class _SongListScreenState extends State<SongListScreen> {
                   icon: const Icon(Icons.more_vert),
                   onPressed: () {},
                 ),
-              ),
-      ),
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: const [MiniPlayer(), AppBottomNav(currentIndex: 0)],
+              );
+            },
+          ),
+        ),
+        bottomNavigationBar: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [MiniPlayer(), AppBottomNav(currentIndex: 0)],
+        ),
       ),
     );
   }
