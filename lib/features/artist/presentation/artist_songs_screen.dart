@@ -1,12 +1,13 @@
-import 'package:btl_music_app/core/providers/artist_provider.dart';
-import 'package:btl_music_app/core/providers/song_provider.dart';
-import 'package:btl_music_app/core/widgets/song_item.dart';
-import 'package:btl_music_app/features/music/data/models/artist_model.dart';
-import 'package:btl_music_app/features/music/data/models/song_model.dart';
+import 'package:btl_music_app/features/artist/bloc/artist_songs_bloc.dart';
+import 'package:btl_music_app/features/artist/bloc/artist_songs_event.dart';
+import 'package:btl_music_app/features/artist/bloc/artist_songs_state.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:btl_music_app/features/music/data/repo/artist_repo.dart';
+import 'package:btl_music_app/features/music/data/repo/song_repo.dart';
+import 'package:btl_music_app/core/widgets/song_item.dart';
 
-class ArtistSongsScreen extends StatefulWidget {
+class ArtistSongsScreen extends StatelessWidget {
   final String artistId;
   final String artistName;
 
@@ -17,151 +18,151 @@ class ArtistSongsScreen extends StatefulWidget {
   });
 
   @override
-  State<ArtistSongsScreen> createState() => _ArtistSongsScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => ArtistSongsBloc(
+        artistRepo: context.read<ArtistRepository>(),
+        songRepo: context.read<SongRepository>(),
+      )..add(LoadArtistSongs(artistId)),
+      child: const ArtistSongsView(),
+    );
+  }
 }
 
-class _ArtistSongsScreenState extends State<ArtistSongsScreen> {
-  ArtistModel? _artist;
-  List<SongModel> _songs = [];
-  bool _isLoadingArtist = true;
-  bool _isLoadingSongs = true;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    try {
-      final artistProvider = context.read<ArtistProvider>();
-      final artist = artistProvider.allArtists.firstWhere(
-        (a) => a.id == widget.artistId,
-        orElse: () => throw Exception('Không tìm thấy nghệ sĩ'),
-      );
-      setState(() {
-        _artist = artist;
-        _isLoadingArtist = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoadingArtist = false;
-      });
-    }
-
-    try {
-      final songProvider = context.read<SongProvider>();
-      final songs = await songProvider.getSongsByArtistId(widget.artistId);
-      setState(() {
-        _songs = songs;
-        _isLoadingSongs = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoadingSongs = false;
-      });
-    }
-  }
+class ArtistSongsView extends StatelessWidget {
+  const ArtistSongsView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoadingArtist || _isLoadingSongs) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
+    return BlocBuilder<ArtistSongsBloc, ArtistSongsState>(
+      builder: (context, state) {
+        if (state is ArtistSongsLoading) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (state is ArtistSongsError) {
+          return Scaffold(
+            appBar: AppBar(),
+            body: Center(child: Text(state.message)),
+          );
+        }
+        if (state is ArtistSongsLoaded) {
+          final artist = state.artist;
+          final songs = state.songs;
+          final coverUrl = artist.avatar;
+          final hasCover = coverUrl != null && coverUrl.isNotEmpty;
 
-    if (_error != null || _artist == null) {
-      return Scaffold(
-        appBar: AppBar(),
-        body: Center(child: Text(_error ?? 'Không tìm thấy nghệ sĩ')),
-      );
-    }
-
-    final artist = _artist!;
-    final coverUrl = artist.avatar;
-    final hasCover = coverUrl != null && coverUrl.isNotEmpty;
-
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 250,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              background: hasCover
-                  ? Image.network(
-                      coverUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        color: Colors.grey.shade900,
-                        child: const Icon(Icons.person, size: 80, color: Colors.white54),
-                      ),
-                    )
-                  : Container(
-                      color: Colors.grey.shade900,
-                      child: const Icon(Icons.person, size: 80, color: Colors.white54),
-                    ),
-            ),
-            actions: const [
-              IconButton(
-                icon: Icon(Icons.more_vert),
-                onPressed: null,
-              ),
-            ],
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16, left: 16, right: 16),
-                    child: Text(
-                    artist.name,
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  ),
-                  const SizedBox(height: 4),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                    'Nghệ sĩ • ${_songs.length} bài hát',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  ),
-                  const SizedBox(height: 20),
-                  ..._songs.asMap().entries.map((entry) {
-                    final song = entry.value;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: 
-                          Expanded(
-                            child: SongItem(
-                              songId: song.id,
-                              title: song.title,
-                              artist: song.artist,
-                              image: song.thumbnail,
+          return Scaffold(
+            body: CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  expandedHeight: 250,
+                  pinned: true,
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: hasCover
+                        ? Image.network(
+                            coverUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              color: Colors.grey.shade900,
+                              child: const Icon(Icons.person, size: 80, color: Colors.white54),
                             ),
+                          )
+                        : Container(
+                            color: Colors.grey.shade900,
+                            child: const Icon(Icons.person, size: 80, color: Colors.white54),
                           ),
-                    );
-                  }).toList(),
-                ],
-              ),
+                  ),
+                  actions: const [
+                    IconButton(
+                      icon: Icon(Icons.more_vert),
+                      onPressed: null,
+                    ),
+                  ],
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          artist.name,
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Nghệ sĩ • ${songs.length} bài hát',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                // TODO: phát ngẫu nhiên
+                              },
+                              icon: const Icon(Icons.shuffle),
+                              label: const Text('Phát ngẫu nhiên'),
+                            ),
+                            const SizedBox(width: 12),
+                            OutlinedButton.icon(
+                              onPressed: () {
+                                // TODO: thích / bỏ thích
+                              },
+                              icon: const Icon(Icons.favorite_border),
+                              label: const Text('Thích'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        ...songs.asMap().entries.map((entry) {
+                          final index = entry.key + 1;
+                          final song = entry.value;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  width: 30,
+                                  child: Text(
+                                    '$index',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: SongItem(
+                                    songId: song.id,
+                                    title: song.title,
+                                    artist: song.artist,
+                                    image: song.thumbnail,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
+          );
+        }
+        return const SizedBox.shrink();
+      },
     );
   }
 }

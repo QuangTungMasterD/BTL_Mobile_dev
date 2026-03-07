@@ -5,8 +5,8 @@ class CustomTextField extends StatelessWidget {
   final String hint;
   final IconData icon;
   final bool isPassword;
-  final bool obscureText;          // chỉ dùng khi isPassword = true
-  final VoidCallback? onToggle;    // gọi khi bấm nút mắt (null thì không hiện nút)
+  final bool obscureText;
+  final VoidCallback? onToggle;
 
   const CustomTextField({
     super.key,

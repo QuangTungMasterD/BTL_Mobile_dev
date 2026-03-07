@@ -99,10 +99,11 @@ class UserModel {
   // ===============================
 
   factory UserModel.empty(String uid, String email) {
+    String nameId = uid.substring(0, 4);
     return UserModel(
       uid: uid,
       email: email,
-      displayName: '',
+      displayName: 'Người dùng $nameId',
       fullName: '',
       phone: '',
       avatar: 'https://images.spiderum.com/sp-images/9ae85f405bdf11f0a7b6d5c38c96eb0e.jpeg',
