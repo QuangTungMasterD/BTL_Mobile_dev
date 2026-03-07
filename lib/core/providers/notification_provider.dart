@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:btl_music_app/features/notify/data/repo/notification_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:btl_music_app/features/notify/data/models/notification_model.dart';
@@ -5,6 +7,7 @@ import 'package:btl_music_app/features/notify/data/models/notification_model.dar
 class NotificationProvider extends ChangeNotifier {
   final NotificationRepository _repo;
   final String userId;
+  StreamSubscription? _subscription;
 
   List<NotificationModel> _notifications = [];
   int _unreadCount = 0;
@@ -17,7 +20,8 @@ class NotificationProvider extends ChangeNotifier {
   String? get error => _error;
 
   NotificationProvider(this._repo, this.userId) {
-    if (userId.isNotEmpty) {  // ← Kiểm tra userId không rỗng
+    if (userId.isNotEmpty) {
+      // ← Kiểm tra userId không rỗng
       loadNotifications();
     } else {
       _error = "Vui lòng đăng nhập để xem thông báo";
@@ -26,19 +30,26 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   void loadNotifications() {
+    _subscription?.cancel(); // Hủy subscription cũ nếu có
     _isLoading = true;
     notifyListeners();
 
-    _repo.getUserNotifications(userId).listen((notifications) {
-      _notifications = notifications;
-      _unreadCount = notifications.where((notif) => !notif.isRead).length;
-      _isLoading = false;
-      notifyListeners();
-    }, onError: (e) {
-      _error = e.toString();
-      _isLoading = false;
-      notifyListeners();
-    });
+    // Gán subscription mới
+    _subscription = _repo
+        .getUserNotifications(userId)
+        .listen(
+          (notifications) {
+            _notifications = notifications;
+            _unreadCount = notifications.where((notif) => !notif.isRead).length;
+            _isLoading = false;
+            notifyListeners();
+          },
+          onError: (e) {
+            _error = e.toString();
+            _isLoading = false;
+            notifyListeners();
+          },
+        );
   }
 
   Future<void> markAsRead(String notifId) async {
@@ -51,5 +62,11 @@ class NotificationProvider extends ChangeNotifier {
 
   Future<void> deleteNotification(String notifId) async {
     await _repo.deleteNotification(userId, notifId);
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 }

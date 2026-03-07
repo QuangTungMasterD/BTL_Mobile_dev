@@ -1,5 +1,4 @@
 import 'package:btl_music_app/core/providers/auth_provider.dart';
-import 'package:btl_music_app/core/providers/user_provider.dart';
 import 'package:btl_music_app/features/auth/presentation/widgets/custom_text_field.dart';
 import 'package:btl_music_app/features/home/presentation/home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
