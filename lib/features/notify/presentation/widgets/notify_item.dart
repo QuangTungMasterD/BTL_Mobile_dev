@@ -1,6 +1,5 @@
 import 'package:btl_music_app/features/notify/data/models/notification_model.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class NotifyItem extends StatelessWidget {
   final NotificationModel notification;

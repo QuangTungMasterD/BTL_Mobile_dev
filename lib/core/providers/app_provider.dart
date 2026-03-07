@@ -18,6 +18,7 @@ import 'package:btl_music_app/features/music/data/repo/song_repo.dart';
 import 'package:btl_music_app/features/music/data/services/artist_service.dart';
 import 'package:btl_music_app/features/library/data/services/play_list_service.dart';
 import 'package:btl_music_app/features/music/data/services/song_service.dart';
+import 'package:btl_music_app/features/notify/bloc/notification_bloc.dart';
 import 'package:btl_music_app/features/notify/data/repo/notification_repo.dart';
 import 'package:btl_music_app/features/notify/data/services/notification_service.dart';
 import 'package:btl_music_app/features/playing/data/repo/player_repo.dart';
@@ -184,7 +185,15 @@ class AppProviders {
 
     // Profile BLoC
     BlocProvider<ProfileBloc>(
-      create: (context) => ProfileBloc(repository: context.read<UserRepository>()),
+      create: (context) =>
+          ProfileBloc(repository: context.read<UserRepository>()),
+    ),
+
+    // notification BLoC
+    BlocProvider<NotificationBloc>(
+      create: (context) => NotificationBloc(
+        repository: context.read<NotificationRepository>(),
+      ),
     ),
   ];
 }
