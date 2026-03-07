@@ -1,9 +1,10 @@
+import 'package:btl_music_app/features/top/presentation/widgets/top_chart.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:btl_music_app/features/music/data/repo/song_repo.dart';
 import 'package:btl_music_app/features/top/bloc/top_bloc.dart';
 import 'package:btl_music_app/features/top/bloc/top_event.dart';
 import 'package:btl_music_app/features/top/bloc/top_state.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:btl_music_app/features/top/presentation/widgets/top_item.dart';
 import '../../../core/widgets/mini_player.dart';
 import '../../../core/widgets/bottom.dart';
@@ -14,7 +15,9 @@ class ChartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => TopBloc(repository: context.read<SongRepository>())..add(LoadTopSongs()),
+      create: (_) =>
+          TopBloc(repository: context.read<SongRepository>())
+            ..add(LoadTopSongs()),
       child: Scaffold(
         body: Container(
           decoration: const BoxDecoration(
@@ -27,12 +30,14 @@ class ChartScreen extends StatelessWidget {
           child: SafeArea(
             child: Column(
               children: [
-                /// HEADER
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: Row(
                     children: [
-                      Text(
+                      const Text(
                         "#Top 99",
                         style: TextStyle(
                           fontSize: 26,
@@ -40,20 +45,15 @@ class ChartScreen extends StatelessWidget {
                           color: Colors.pinkAccent,
                         ),
                       ),
-                      Spacer(),
-                      SizedBox(width: 12),
+                      const Spacer(),
                       IconButton(
-                        icon: Icon(Icons.search),
-                        color: Colors.white,
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/search');
-                        },
+                        icon: const Icon(Icons.search, color: Colors.white),
+                        onPressed: () =>
+                            Navigator.pushNamed(context, '/search'),
                       ),
                     ],
                   ),
                 ),
-
-                /// LIST
                 Expanded(
                   child: BlocBuilder<TopBloc, TopState>(
                     builder: (context, state) {
@@ -76,17 +76,22 @@ class ChartScreen extends StatelessWidget {
                           ),
                         );
                       }
-                      return ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: state.topSongs.length,
-                        itemBuilder: (context, index) {
-                          final songModel = state.topSongs[index];
-                          return ChartItem(
-                            song: songModel,
-                            rank: index + 1,
-                            songId: songModel.id,
-                          );
-                        },
+                      return ListView(
+                        children: [
+                          if (state.topSongs.isNotEmpty)
+                            TopChartIndicator(
+                              topSongs: state.topSongs.take(10).toList(),
+                            ),
+                          const SizedBox(height: 16),
+                          ...state.topSongs.map((song) {
+                            final index = state.topSongs.indexOf(song);
+                            return ChartItem(
+                              song: song,
+                              rank: index + 1,
+                              songId: song.id,
+                            );
+                          }).toList(),
+                        ],
                       );
                     },
                   ),
@@ -95,12 +100,9 @@ class ChartScreen extends StatelessWidget {
             ),
           ),
         ),
-        bottomNavigationBar: Column(
+        bottomNavigationBar: const Column(
           mainAxisSize: MainAxisSize.min,
-          children: const [
-            MiniPlayer(),
-            AppBottomNav(currentIndex: 2),
-          ],
+          children: [MiniPlayer(), AppBottomNav(currentIndex: 2)],
         ),
       ),
     );
