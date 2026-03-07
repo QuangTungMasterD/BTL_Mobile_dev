@@ -1,5 +1,6 @@
 import 'package:btl_music_app/core/providers/artist_provider.dart';
 import 'package:btl_music_app/core/providers/song_provider.dart';
+import 'package:btl_music_app/core/providers/user_provider.dart';
 import 'package:btl_music_app/core/widgets/bottom.dart';
 import 'package:btl_music_app/core/widgets/header.dart';
 import 'package:btl_music_app/core/widgets/mini_player.dart';
@@ -27,7 +28,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadRecommendations();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadRecommendations();
+    });
   }
 
   Future<void> _loadRecommendations() async {
@@ -96,12 +99,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            ..._recommendations.map((song) => SongItem(
-                                  songId: song.id,
-                                  title: song.title,
-                                  artist: song.artist,
-                                  image: song.thumbnail,
-                                )),
+                            ..._recommendations.map(
+                              (song) => SongItem(
+                                songId: song.id,
+                                title: song.title,
+                                artist: song.artist,
+                                image: song.thumbnail,
+                              ),
+                            ),
                             const SizedBox(height: 30),
                           ],
                         ),
@@ -127,7 +132,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         builder: (context, artistProvider, child) {
                           final artists = artistProvider.allArtists;
                           if (artistProvider.isLoading || artists.isEmpty) {
-                            return const Center(child: CircularProgressIndicator());
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
                           }
                           // Lấy 3 nghệ sĩ đầu tiên (hoặc random)
                           final displayedArtists = artists.take(3).toList();
@@ -173,6 +180,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-  
 }

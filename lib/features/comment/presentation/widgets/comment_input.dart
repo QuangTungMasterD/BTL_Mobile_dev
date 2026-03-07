@@ -1,8 +1,8 @@
-// features/comment/presentation/widgets/comment_input.dart
-import 'package:btl_music_app/core/providers/comment_provider.dart';
-import 'package:btl_music_app/core/providers/user_provider.dart';
+import 'package:btl_music_app/features/comment/bloc/comment_bloc.dart';
+import 'package:btl_music_app/features/comment/bloc/comment_event.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:btl_music_app/core/providers/user_provider.dart';
 
 class CommentInput extends StatefulWidget {
   const CommentInput({super.key});
@@ -23,24 +23,18 @@ class _CommentInputState extends State<CommentInput> {
 
   @override
   Widget build(BuildContext context) {
-    final commentProvider = context.watch<CommentProvider>();
+    final commentBloc = context.watch<CommentBloc>();
     final userProvider = context.watch<UserProvider>();
-    final replyingTo = commentProvider.replyingTo;
+    final replyingTo = commentBloc.state.replyingTo;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-
-    // Lấy avatar của user hiện tại
     final currentUserAvatar = userProvider.user?.avatar;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      // decoration: const BoxDecoration(
-      //   border: Border(top: BorderSide(color: Colors.white12)),
-      // ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Thanh hiển thị đang reply (nếu có)
           if (replyingTo != null)
             Container(
               margin: const EdgeInsets.only(bottom: 8),
@@ -64,7 +58,7 @@ class _CommentInputState extends State<CommentInput> {
                     icon: const Icon(Icons.close, size: 16),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                    onPressed: () => commentProvider.setReplyingTo(null),
+                    onPressed: () => commentBloc.add(SetReplyingTo(null)),
                   ),
                 ],
               ),
@@ -87,7 +81,7 @@ class _CommentInputState extends State<CommentInput> {
                     hintText: replyingTo == null ? "Viết bình luận..." : "Nhập nội dung...",
                     border: InputBorder.none,
                   ),
-                  onSubmitted: (_) => _sendComment(commentProvider),
+                  onSubmitted: (_) => _sendComment(commentBloc),
                 ),
               ),
               if (_isSending)
@@ -99,7 +93,7 @@ class _CommentInputState extends State<CommentInput> {
               else
                 IconButton(
                   icon: Icon(Icons.send, color: colorScheme.primary),
-                  onPressed: () => _sendComment(commentProvider),
+                  onPressed: () => _sendComment(commentBloc),
                 ),
             ],
           ),
@@ -108,15 +102,15 @@ class _CommentInputState extends State<CommentInput> {
     );
   }
 
-  Future<void> _sendComment(CommentProvider provider) async {
+  Future<void> _sendComment(CommentBloc bloc) async {
     final content = _controller.text.trim();
     if (content.isEmpty) return;
     setState(() => _isSending = true);
     try {
-      await provider.addComment(content, parentId: provider.replyingTo?.id);
+      bloc.add(AddComment(content, bloc.state.replyingTo?.id));
       _controller.clear();
-      if (provider.replyingTo != null) {
-        provider.setReplyingTo(null);
+      if (bloc.state.replyingTo != null) {
+        bloc.add(SetReplyingTo(null));
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

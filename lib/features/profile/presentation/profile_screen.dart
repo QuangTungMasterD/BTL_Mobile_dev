@@ -1,3 +1,4 @@
+import 'package:btl_music_app/core/providers/auth_provider.dart';
 import 'package:btl_music_app/features/profile/bloc/profile_bloc.dart';
 import 'package:btl_music_app/features/profile/bloc/profile_state.dart';
 import 'package:btl_music_app/features/profile/bloc/profile_event.dart';
@@ -15,6 +16,9 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthUserProvider>();
+    final userId = authProvider.user?.uid ?? '';
+    
     return Scaffold(
       body: SafeArea(
         child: BlocBuilder<ProfileBloc, ProfileState>(
@@ -45,6 +49,7 @@ class ProfileScreen extends StatelessWidget {
             }
             if (state is ProfileLoaded) {
               final user = state.user;
+              print(user.uid);
               return ListView(
                 children: [
                   ProfileHeader(title: 'Hồ sơ'),

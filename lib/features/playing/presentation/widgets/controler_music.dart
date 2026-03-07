@@ -107,7 +107,6 @@ class PlayerControls extends StatelessWidget {
                             backgroundColor: Colors.transparent,
                             builder: (_) => CommentSheet(
                               songId: song.id,
-                              currentUserId: context.read<AuthUserProvider>().user?.uid,
                             ),
                           );
                         },
