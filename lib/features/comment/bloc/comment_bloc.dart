@@ -70,7 +70,6 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
     );
     try {
       await _repository.addComment(newComment);
-      // Không cần emit, stream sẽ tự cập nhật
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
     }
@@ -81,8 +80,7 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
     Emitter<CommentState> emit,
   ) async {
     try {
-      await _repository.deleteComment(songId, event.commentId);
-      // Stream tự cập nhật
+      await _repository.softDeleteComment(songId, event.commentId);
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
     }
@@ -96,7 +94,6 @@ class CommentBloc extends Bloc<CommentEvent, CommentState> {
     if (currentUserId == null) return;
     try {
       await _repository.toggleLike(songId, event.commentId, currentUserId);
-      // Stream tự cập nhật
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
     }

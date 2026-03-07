@@ -26,7 +26,7 @@ class CommentState {
       comments: comments ?? this.comments,
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
-      replyingTo: replyingTo ?? this.replyingTo,
+      replyingTo: replyingTo,
       currentUserId: currentUserId ?? this.currentUserId,
     );
   }

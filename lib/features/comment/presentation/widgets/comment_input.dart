@@ -30,6 +30,8 @@ class _CommentInputState extends State<CommentInput> {
     final colorScheme = theme.colorScheme;
     final currentUserAvatar = userProvider.user?.avatar;
 
+    print(replyingTo != null);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
@@ -58,7 +60,9 @@ class _CommentInputState extends State<CommentInput> {
                     icon: const Icon(Icons.close, size: 16),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
-                    onPressed: () => commentBloc.add(SetReplyingTo(null)),
+                    onPressed: () {
+                      context.read<CommentBloc>().add(SetReplyingTo(null));
+                    },
                   ),
                 ],
               ),
@@ -81,7 +85,7 @@ class _CommentInputState extends State<CommentInput> {
                     hintText: replyingTo == null ? "Viết bình luận..." : "Nhập nội dung...",
                     border: InputBorder.none,
                   ),
-                  onSubmitted: (_) => _sendComment(commentBloc),
+                  onSubmitted: (_) => _sendComment(context),
                 ),
               ),
               if (_isSending)
@@ -93,7 +97,7 @@ class _CommentInputState extends State<CommentInput> {
               else
                 IconButton(
                   icon: Icon(Icons.send, color: colorScheme.primary),
-                  onPressed: () => _sendComment(commentBloc),
+                  onPressed: () => _sendComment(context),
                 ),
             ],
           ),
@@ -102,11 +106,12 @@ class _CommentInputState extends State<CommentInput> {
     );
   }
 
-  Future<void> _sendComment(CommentBloc bloc) async {
+  Future<void> _sendComment(BuildContext context) async {
     final content = _controller.text.trim();
     if (content.isEmpty) return;
     setState(() => _isSending = true);
     try {
+      final bloc = context.read<CommentBloc>();
       bloc.add(AddComment(content, bloc.state.replyingTo?.id));
       _controller.clear();
       if (bloc.state.replyingTo != null) {

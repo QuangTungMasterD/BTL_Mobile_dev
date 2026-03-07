@@ -46,10 +46,12 @@ class CommentList extends StatelessWidget {
 
     bool hasVisibleChildren = childWidgets.isNotEmpty;
 
+    // Quyết định hiển thị node này không?
     if (node.isDeleted && !hasVisibleChildren) {
       return [];
     }
 
+    // Nếu node hiển thị, tạo widget cho nó và kèm theo children
     return [
       Padding(
         padding: EdgeInsets.only(left: node.parentId == null ? 0 : 40),
@@ -83,6 +85,7 @@ class CommentList extends StatelessWidget {
           return const Center(child: Text('Chưa có bình luận nào'));
         }
 
+        // Xây dựng map children
         final Map<String, List<CommentModel>> childrenMap = {};
         final List<CommentModel> roots = [];
 
@@ -94,6 +97,7 @@ class CommentList extends StatelessWidget {
           }
         }
 
+        // Xây dựng cây và lấy danh sách widget
         List<Widget> treeWidgets = [];
         for (var root in roots) {
           treeWidgets.addAll(_buildCommentTree(root, childrenMap, context, null));
