@@ -16,8 +16,12 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthUserProvider>();
-    final userId = authProvider.user?.uid ?? '';
+    // final authProvider = context.watch<AuthUserProvider>();
+    // final userId = authProvider.user?.uid ?? '';
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProfileBloc>().add(LoadProfile());
+    });
     
     return Scaffold(
       body: SafeArea(
@@ -62,9 +66,7 @@ class ProfileScreen extends StatelessWidget {
               );
             }
             // ProfileInitial: tự động load
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.read<ProfileBloc>().add(LoadProfile());
-            });
+            
             return const SizedBox.shrink();
           },
         ),

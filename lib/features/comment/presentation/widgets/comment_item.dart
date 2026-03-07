@@ -7,7 +7,7 @@ class CommentItem extends StatelessWidget {
   final VoidCallback onLike;
   final VoidCallback? onDelete;
   final VoidCallback onReply;
-  final String? replyToName; // Thêm tham số này
+  final String? replyToName;
 
   const CommentItem({
     super.key,
@@ -16,7 +16,7 @@ class CommentItem extends StatelessWidget {
     required this.onLike,
     this.onDelete,
     required this.onReply,
-    this.replyToName, // Khởi tạo
+    this.replyToName,
   });
 
   @override
