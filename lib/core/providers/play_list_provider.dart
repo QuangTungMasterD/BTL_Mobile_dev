@@ -21,7 +21,6 @@ class PlayListProvider extends ChangeNotifier {
     loadUserPlaylists();
   }
 
-  // Load danh sách playlist của user
   void loadUserPlaylists() {
     _subscription?.cancel();
     if (userId.isEmpty) {
@@ -55,7 +54,7 @@ class PlayListProvider extends ChangeNotifier {
 
   Future<void> createPlaylist(String name, String? coverUrl) async {
     final newPlaylist = PlayListModel(
-      id: '', // sẽ được tạo sau
+      id: '',
       name: name,
       coverUrl: coverUrl,
       userId: userId,
@@ -65,13 +64,12 @@ class PlayListProvider extends ChangeNotifier {
     );
 
     final playlistId = await _repo.createPlaylist(newPlaylist);
-    // Reload lại danh sách
     loadUserPlaylists();
   }
 
   Future<void> addSongToPlaylist(String playlistId, String songId) async {
     await _repo.addSongToPlaylist(playlistId, songId);
-    loadUserPlaylists(); // reload để cập nhật UI
+    loadUserPlaylists();
   }
 
   Future<void> removeSongFromPlaylist(String playlistId, String songId) async {

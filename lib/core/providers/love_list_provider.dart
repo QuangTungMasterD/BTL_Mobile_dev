@@ -1,4 +1,3 @@
-// core/providers/love_list_provider.dart
 import 'dart:async';
 
 import 'package:btl_music_app/features/library/data/models/love_list_model.dart';
@@ -40,7 +39,6 @@ class LoveListProvider extends ChangeNotifier {
         _isLoading = false;
         notifyListeners();
 
-        // Nếu chưa có love list, tự động tạo mới (có thể tạo khi cần)
         if (loveList == null) {
           _createInitialLoveList();
         }
@@ -56,7 +54,6 @@ class LoveListProvider extends ChangeNotifier {
   Future<void> _createInitialLoveList() async {
     try {
       await _repo.createLoveList(userId);
-      // Stream sẽ tự cập nhật sau khi tạo
     } catch (e) {
       _error = e.toString();
       notifyListeners();
@@ -70,13 +67,11 @@ class LoveListProvider extends ChangeNotifier {
       if (isLoved) {
         await _repo.removeSongFromLoveList(userId, songId);
       } else {
-        // Đảm bảo love list đã tồn tại
         if (_loveList == null) {
           await _repo.createLoveList(userId);
         }
         await _repo.addSongToLoveList(userId, songId);
       }
-      // Stream sẽ cập nhật tự động
     } catch (e) {
       _error = e.toString();
       notifyListeners();

@@ -31,7 +31,6 @@ import 'package:btl_music_app/features/search/bloc/search/search_landing_bloc.da
 import 'package:btl_music_app/features/search/bloc/search_result/search_bloc.dart';
 import 'package:btl_music_app/features/search/data/repo/history_search_repo.dart';
 import 'package:btl_music_app/features/search/data/repo/search_repo.dart';
-import 'package:btl_music_app/features/setting/bloc/theme_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';

@@ -24,7 +24,7 @@ class AuthUserProvider extends ChangeNotifier {
       final userProv = Provider.of<UserProvider>(ctx, listen: false);
 
       if (authUser != null) {
-        await userProv.initUser(); // ← TỰ ĐỘNG TẠO + LẤY + LISTEN
+        await userProv.initUser();
       } else {
         userProv.clear();
       }
@@ -33,7 +33,6 @@ class AuthUserProvider extends ChangeNotifier {
 
   Future<void> login(String email, String password) async {
     await _authRepo.login(email, password);
-    // Không cần làm gì thêm, stream sẽ trigger
   }
 
   Future<void> loginWithGoogle() async {

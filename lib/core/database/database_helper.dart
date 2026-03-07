@@ -28,7 +28,7 @@ class DatabaseHelper {
 
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 3) {
-      // Tạo bảng downloaded_songs nếu chưa có (khi nâng cấp từ version 1 lên 2)
+      // Tạo bảng downloaded_songs
       await db.execute('''
       CREATE TABLE downloaded_songs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

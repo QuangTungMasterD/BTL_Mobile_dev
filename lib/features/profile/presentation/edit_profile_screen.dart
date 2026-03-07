@@ -104,8 +104,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {Navigator.pop(context);}, 
+          icon: Icon(Icons.arrow_back, color: Colors.white,)
+        ),
         backgroundColor: Colors.black,
-        title: const Text("Thông tin cá nhân"),
+        title: const Text("Thông tin cá nhân", style: TextStyle(color: Colors.white),),
         actions: [
           if (_isSaving)
             const Padding(

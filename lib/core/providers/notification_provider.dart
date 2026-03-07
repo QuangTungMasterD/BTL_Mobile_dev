@@ -21,7 +21,6 @@ class NotificationProvider extends ChangeNotifier {
 
   NotificationProvider(this._repo, this.userId) {
     if (userId.isNotEmpty) {
-      // ← Kiểm tra userId không rỗng
       loadNotifications();
     } else {
       _error = "Vui lòng đăng nhập để xem thông báo";
@@ -30,11 +29,10 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   void loadNotifications() {
-    _subscription?.cancel(); // Hủy subscription cũ nếu có
+    _subscription?.cancel();
     _isLoading = true;
     notifyListeners();
 
-    // Gán subscription mới
     _subscription = _repo
         .getUserNotifications(userId)
         .listen(

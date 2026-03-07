@@ -9,13 +9,13 @@ class CommentProvider extends ChangeNotifier {
   final CommentRepository _repo;
   final String songId;
   final String? currentUserId;
-  final UserProvider _userProvider; // Thêm để lấy thông tin user hiện tại
+  final UserProvider _userProvider;
 
   List<CommentModel> _comments = [];
   bool _isLoading = false;
   String? _error;
   StreamSubscription? _subscription;
-  CommentModel? _replyingTo; // Comment đang được reply
+  CommentModel? _replyingTo;
 
   List<CommentModel> get comments => _comments;
   bool get isLoading => _isLoading;

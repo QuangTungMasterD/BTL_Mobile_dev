@@ -30,8 +30,6 @@ class _CommentInputState extends State<CommentInput> {
     final colorScheme = theme.colorScheme;
     final currentUserAvatar = userProvider.user?.avatar;
 
-    print(replyingTo != null);
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(

@@ -1,4 +1,3 @@
-
 import 'package:btl_music_app/core/providers/player_provider.dart';
 import 'package:btl_music_app/core/providers/song_provider.dart';
 import 'package:btl_music_app/core/widgets/song_options_button.dart';
