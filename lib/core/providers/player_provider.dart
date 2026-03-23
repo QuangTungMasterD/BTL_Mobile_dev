@@ -1,9 +1,13 @@
 import 'dart:async';
+import 'dart:math';
+import 'package:btl_music_app/features/playing/bloc/playing_bloc.dart';
+import 'package:btl_music_app/features/playing/bloc/playing_event.dart';
 import 'package:btl_music_app/features/playing/data/repo/player_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:btl_music_app/features/music/data/models/song_model.dart';
 import 'package:btl_music_app/core/providers/song_provider.dart';
 import 'package:btl_music_app/features/playing/data/services/player_service.dart';
+import 'package:btl_music_app/features/playing/bloc/playing_state.dart';
 
 class PlayerProvider extends ChangeNotifier {
   final PlayerRepository _repo;
@@ -34,8 +38,22 @@ class PlayerProvider extends ChangeNotifier {
   Duration get duration => _duration;
   bool get isPlaying => _state == PlayerStateCustom.playing;
 
-  PlayerProvider(this._repo, this._songProvider) {
+  final PlayingBloc _playingBloc;
+  StreamSubscription? _playingBlocSub;
+
+  PlayerProvider(
+    this._repo, 
+    this._songProvider, 
+    this._playingBloc
+  ) {
     _init();
+    _listenToBloc();
+  }
+
+  void _listenToBloc() {
+    _playingBlocSub = _playingBloc.stream.listen((state) {
+      notifyListeners();
+    });
   }
 
   Future<void> _init() async {
@@ -54,17 +72,18 @@ class PlayerProvider extends ChangeNotifier {
       notifyListeners();
     });
 
-    // Đăng ký callback khi bài hát kết thúc
     _repo.setOnSongCompleted(() {
-      if (_playlist.isNotEmpty) {
-        next(); // Chuyển bài tiếp theo
+      final repeatMode = _playingBloc.state.repeatMode;
+      if (repeatMode == RepeatMode.one) {
+        playSong(_currentSong!);
+      } else if (_playlist.isNotEmpty) {
+        next();
       }
     });
 
     await _restoreState();
   }
 
-  // Thêm phương thức thiết lập playlist và bắt đầu phát
   void setPlaylist(List<SongModel> playlist, {int startIndex = 0}) {
     _playlist = playlist;
     _history = [];
@@ -80,9 +99,7 @@ class PlayerProvider extends ChangeNotifier {
   }
 
   void _addToHistory(SongModel song) {
-    // Nếu bài hiện tại trùng với bài cuối trong history thì không thêm
     if (_history.isNotEmpty && _history.last.id == song.id) return;
-    // Nếu đang ở giữa history (khi người dùng back) thì cắt bỏ phần sau
     if (_historyIndex >= 0 && _historyIndex < _history.length - 1) {
       _history = _history.sublist(0, _historyIndex + 1);
     }
@@ -92,15 +109,43 @@ class PlayerProvider extends ChangeNotifier {
 
   Future<void> next() async {
     if (_playlist.isEmpty) return;
-    int nextIndex = _currentIndex + 1;
-    if (nextIndex >= _playlist.length) {
-      nextIndex = 0;
+    final state = _playingBloc.state;
+    int nextIndex;
+
+    if (state.repeatMode == RepeatMode.one) {
+      nextIndex = _currentIndex;
+    } else if (state.shuffle) {
+      // Chọn ngẫu nhiên một bài khác với bài hiện tại (nếu có hơn 1 bài)
+      if (_playlist.length > 1) {
+        do {
+          nextIndex = Random().nextInt(_playlist.length);
+        } while (nextIndex == _currentIndex);
+      } else {
+        nextIndex = _currentIndex;
+      }
+    } else {
+      nextIndex = _currentIndex + 1;
+      if (nextIndex >= _playlist.length) {
+        if (state.repeatMode == RepeatMode.all) {
+          nextIndex = 0;
+        } else {
+          nextIndex = _currentIndex;
+        }
+      }
     }
+
     _currentIndex = nextIndex;
     await playSong(_playlist[_currentIndex]);
   }
 
   Future<void> previous() async {
+    final state = _playingBloc.state;
+
+    if (state.repeatMode == RepeatMode.one) {
+      await seek(Duration.zero);
+      return;
+    }
+
     if (_historyIndex > 0 && _position <= const Duration(seconds: 10)) {
       _historyIndex--;
       final previousSong = _history[_historyIndex];
@@ -142,7 +187,6 @@ class PlayerProvider extends ChangeNotifier {
 
   /// 🎧 PLAY SONG
   Future<void> playSong(SongModel song) async {
-    // Tìm index trong playlist nếu có
     int index = _playlist.indexOf(song);
     if (index != -1) {
       _currentIndex = index;
@@ -150,22 +194,26 @@ class PlayerProvider extends ChangeNotifier {
     _currentSong = song;
     _addToHistory(song);
     await _repo.play(song.audio);
+    _playingBloc.add(SetPlaybackState(true));
     notifyListeners();
     await _persistState();
   }
 
   Future<void> pause() async {
     await _repo.pause();
+    _playingBloc.add(SetPlaybackState(false));
     await _persistState();
   }
 
   Future<void> resume() async {
     await _repo.resume();
+    _playingBloc.add(SetPlaybackState(true));
     await _persistState();
   }
 
   Future<void> stop() async {
     await _repo.stop();
+    _playingBloc.add(SetPlaybackState(false));
 
     _currentSong = null;
     _position = Duration.zero;
@@ -185,6 +233,7 @@ class PlayerProvider extends ChangeNotifier {
     _stateSub?.cancel();
     _positionSub?.cancel();
     _durationSub?.cancel();
+    _playingBlocSub?.cancel();
     _repo.dispose();
     super.dispose();
   }

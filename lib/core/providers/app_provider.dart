@@ -21,6 +21,7 @@ import 'package:btl_music_app/features/music/data/services/song_service.dart';
 import 'package:btl_music_app/features/notify/bloc/notification_bloc.dart';
 import 'package:btl_music_app/features/notify/data/repo/notification_repo.dart';
 import 'package:btl_music_app/features/notify/data/services/notification_service.dart';
+import 'package:btl_music_app/features/playing/bloc/playing_bloc.dart';
 import 'package:btl_music_app/features/playing/data/repo/player_repo.dart';
 import 'package:btl_music_app/features/playing/data/services/play_back_state_service.dart';
 import 'package:btl_music_app/features/playing/data/services/player_service.dart';
@@ -107,10 +108,13 @@ class AppProviders {
       ),
     ),
 
+    BlocProvider(create: (context) => PlayingBloc()),
+
     ChangeNotifierProxyProvider<SongProvider, PlayerProvider>(
       create: (context) => PlayerProvider(
         context.read<PlayerRepository>(),
         context.read<SongProvider>(),
+        context.read<PlayingBloc>()
       ),
       update: (context, songProvider, previous) => previous!,
     ),

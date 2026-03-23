@@ -1,5 +1,8 @@
 import 'package:btl_music_app/features/comment/presentation/comment_screen.dart';
 import 'package:btl_music_app/features/music/data/models/song_model.dart';
+import 'package:btl_music_app/features/playing/bloc/playing_bloc.dart';
+import 'package:btl_music_app/features/playing/bloc/playing_event.dart';
+import 'package:btl_music_app/features/playing/bloc/playing_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:btl_music_app/core/providers/player_provider.dart';
@@ -7,8 +10,7 @@ import 'package:btl_music_app/core/providers/auth_provider.dart';
 
 class PlayerControls extends StatelessWidget {
   final SongModel song;
-  final String Function(Duration)
-  formatDuration; // callback để format thời gian
+  final String Function(Duration) formatDuration;
 
   const PlayerControls({
     super.key,
@@ -19,6 +21,10 @@ class PlayerControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final player = context.watch<PlayerProvider>();
+    final playingBloc = context.watch<PlayingBloc>();
+    final repeatMode = playingBloc.state.repeatMode;
+    final shuffle = playingBloc.state.shuffle;
+
     return Positioned(
       bottom: 10,
       left: 0,
@@ -62,7 +68,16 @@ class PlayerControls extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    const Icon(Icons.shuffle, color: Colors.purple, size: 24),
+                    IconButton(
+                      icon: Icon(
+                        shuffle ? Icons.shuffle : Icons.shuffle,
+                        color: shuffle ? Colors.purple : Colors.white,
+                        size: 24,
+                      ),
+                      onPressed: () {
+                        context.read<PlayingBloc>().add(ToggleShuffle());
+                      },
+                    ),
                     IconButton(
                       icon: const Icon(
                         Icons.skip_previous,
@@ -84,11 +99,8 @@ class PlayerControls extends StatelessWidget {
                           if (player.isPlaying) {
                             player.pause();
                           } else {
-                            // Nếu có bài hiện tại thì resume, nếu không có thì không làm gì
                             if (player.currentSong != null) {
                               player.resume();
-                            } else {
-                              // Có thể hiển thị thông báo chưa có bài
                             }
                           }
                         },
@@ -102,7 +114,18 @@ class PlayerControls extends StatelessWidget {
                       ),
                       onPressed: player.next,
                     ),
-                    const Icon(Icons.repeat, color: Colors.white, size: 24),
+                    IconButton(
+                      icon: Icon(
+                        _repeatIcon(repeatMode),
+                        color: repeatMode != RepeatMode.none
+                            ? Colors.purple
+                            : Colors.white,
+                        size: 24,
+                      ),
+                      onPressed: () {
+                        context.read<PlayingBloc>().add(ToggleRepeat());
+                      },
+                    ),
                   ],
                 ),
                 Padding(
@@ -134,5 +157,16 @@ class PlayerControls extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  IconData _repeatIcon(RepeatMode mode) {
+    switch (mode) {
+      case RepeatMode.none:
+        return Icons.repeat;
+      case RepeatMode.one:
+        return Icons.repeat_one;
+      case RepeatMode.all:
+        return Icons.repeat;
+    }
   }
 }

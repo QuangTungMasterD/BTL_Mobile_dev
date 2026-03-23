@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:ui';
 
+import 'package:btl_music_app/features/playing/bloc/playing_bloc.dart';
 import 'package:btl_music_app/features/playing/data/services/play_back_state_service.dart';
 import 'package:btl_music_app/features/playing/data/services/player_service.dart';
 
@@ -7,7 +9,6 @@ class PlayerRepository {
   final PlayerService _playerService;
   final PlaybackStateService _stateService;
 
-  PlayerRepository(this._playerService, this._stateService);
 
   // 🎧 Player controls
   Future<void> play(String path) => _playerService.play(path);
@@ -22,6 +23,8 @@ class PlayerRepository {
   Stream<Duration> get durationStream => _playerService.durationStream;
 
   PlayerStateCustom get currentState => _playerService.currentState;
+
+  PlayerRepository(this._playerService, this._stateService);
 
   void setOnSongCompleted(VoidCallback callback) {
     _playerService.onSongCompleted = callback;
