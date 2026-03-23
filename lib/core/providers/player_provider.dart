@@ -44,7 +44,54 @@ class PlayerProvider extends ChangeNotifier {
       notifyListeners();
     });
 
+    // Đăng ký callback khi bài hát kết thúc
+    _repo.setOnSongCompleted(() {
+      if (_playlist.isNotEmpty) {
+        next(); // Chuyển bài tiếp theo
+      }
+    });
+
     await _restoreState();
+  }
+
+  List<SongModel> _playlist = [];
+  int _currentIndex = -1;
+
+  List<SongModel> get playlist => _playlist;
+  int get currentIndex => _currentIndex;
+
+  // Thêm phương thức thiết lập playlist và bắt đầu phát
+  void setPlaylist(List<SongModel> playlist, {int startIndex = 0}) {
+    _playlist = playlist;
+    if (playlist.isNotEmpty && startIndex >= 0 && startIndex < playlist.length) {
+      _currentIndex = startIndex;
+      playSong(playlist[_currentIndex]);
+    } else {
+      _currentIndex = -1;
+    }
+    notifyListeners();
+  }
+
+  Future<void> next() async {
+    if (_playlist.isEmpty) return;
+    int nextIndex = _currentIndex + 1;
+    if (nextIndex >= _playlist.length) {
+      nextIndex = 0;
+    }
+    _currentIndex = nextIndex;
+    await playSong(_playlist[_currentIndex]);
+  }
+
+  // Phát bài trước đó
+  Future<void> previous() async {
+    if (_playlist.isEmpty) return;
+    int prevIndex = _currentIndex - 1;
+    if (prevIndex < 0) {
+      // Nếu đang ở đầu playlist, có thể không làm gì
+      return;
+    }
+    _currentIndex = prevIndex;
+    await playSong(_playlist[_currentIndex]);
   }
 
   Future<void> _restoreState() async {
@@ -80,10 +127,13 @@ class PlayerProvider extends ChangeNotifier {
 
   /// 🎧 PLAY SONG
   Future<void> playSong(SongModel song) async {
+    // Tìm index trong playlist nếu có
+    int index = _playlist.indexOf(song);
+    if (index != -1) {
+      _currentIndex = index;
+    }
     _currentSong = song;
-
     await _repo.play(song.audio ?? '');
-
     notifyListeners();
     await _persistState();
   }

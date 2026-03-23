@@ -35,9 +35,9 @@ class SongListScreen extends StatelessWidget {
               return SearchableSongList(
                 songs: state.songs,
                 title: state.playlistName ?? title,
-                onSongTap: (song) {
-                  // Xử lý phát nhạc
-                },
+                // onSongTap: (song) {
+                //   // Xử lý phát nhạc
+                // },
                 trailing: IconButton(
                   icon: const Icon(Icons.more_vert),
                   onPressed: () {},

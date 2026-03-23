@@ -27,9 +27,9 @@ class DownloadedSongsScreen extends StatelessWidget {
               return SearchableSongList(
                 songs: state.songs,
                 title: "Đã tải về",
-                onSongTap: (song) {
-                  // Xử lý phát nhạc offline
-                },
+                // onSongTap: (song) {
+                //   // Xử lý phát nhạc offline
+                // },
                 trailing: IconButton(
                   icon: const Icon(Icons.more_vert),
                   onPressed: () {},

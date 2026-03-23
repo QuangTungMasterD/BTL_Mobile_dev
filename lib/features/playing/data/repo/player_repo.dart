@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:btl_music_app/features/playing/data/services/play_back_state_service.dart';
 import 'package:btl_music_app/features/playing/data/services/player_service.dart';
 
@@ -20,6 +22,11 @@ class PlayerRepository {
   Stream<Duration> get durationStream => _playerService.durationStream;
 
   PlayerStateCustom get currentState => _playerService.currentState;
+
+  void setOnSongCompleted(VoidCallback callback) {
+    _playerService.onSongCompleted = callback;
+  }
+
 
   // 💾 State persistence
   Future<void> saveState(

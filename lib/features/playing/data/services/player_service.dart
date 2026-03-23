@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 
 enum PlayerStateCustom { stopped, playing, paused }
 
 class PlayerService {
+  VoidCallback? onSongCompleted;
+  
   final AudioPlayer _player = AudioPlayer();
 
   PlayerStateCustom _state = PlayerStateCustom.stopped;
@@ -48,20 +51,22 @@ class PlayerService {
 
     // listen state
     _player.playerStateStream.listen((playerState) {
-      if (playerState.playing) {
-        _state = PlayerStateCustom.playing;
-      } else if (playerState.processingState == ProcessingState.completed) {
+      if (playerState.processingState == ProcessingState.completed) {
         _state = PlayerStateCustom.stopped;
+        onSongCompleted?.call();
+      } else if (playerState.playing) {
+        _state = PlayerStateCustom.playing;
       } else {
         _state = PlayerStateCustom.paused;
       }
+      print('Song i dont no!');
       _stateController.add(_state);
     });
   }
 
   /// 🔥 PLAY LOCAL AUDIO
   Future<void> play(String assetPath) async {
-    await clearJustAudioCache();
+    // await clearJustAudioCache();
     await _player.setAsset(assetPath); // load file
     await _player.play();
   }

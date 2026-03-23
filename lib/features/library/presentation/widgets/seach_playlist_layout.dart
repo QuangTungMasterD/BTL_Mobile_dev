@@ -1,12 +1,14 @@
 import 'package:btl_music_app/core/widgets/song_item.dart';
 import 'package:btl_music_app/features/music/data/models/song_model.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:btl_music_app/core/providers/player_provider.dart';
 
 class SearchableSongList extends StatefulWidget {
   final List<SongModel> songs;
   final String title;
   final VoidCallback? onBackPressed;
-  final Function(SongModel)? onSongTap;
+  final void Function(List<SongModel> playlist, int startIndex)? onSongTap; // Thay đổi signature
   final Widget? trailing;
 
   const SearchableSongList({
@@ -32,6 +34,13 @@ class _SearchableSongListState extends State<SearchableSongList> {
   void initState() {
     super.initState();
     _filteredSongs = widget.songs;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+    final player = Provider.of<PlayerProvider>(context, listen: false);
+    // Nếu playlist hiện tại khác với widget.songs, set lại
+    if (player.playlist != widget.songs) {
+      player.setPlaylist(widget.songs);
+    }
+  });
   }
 
   @override
@@ -79,6 +88,7 @@ class _SearchableSongListState extends State<SearchableSongList> {
 
   @override
   Widget build(BuildContext context) {
+    // Không gọi setPlaylist ở đây nữa
     return Column(
       children: [
         // Header
@@ -125,11 +135,24 @@ class _SearchableSongListState extends State<SearchableSongList> {
                   itemCount: _filteredSongs.length,
                   itemBuilder: (context, index) {
                     final song = _filteredSongs[index];
-                    return SongItem(
-                      title: song.title,
-                      artist: song.artist,
-                      image: song.thumbnail,
-                      songId: song.id,
+                    // Tìm index trong danh sách gốc
+                    final originalIndex = widget.songs.indexWhere((s) => s.id == song.id);
+                    return GestureDetector(
+                      onTap: () {
+                        if (widget.onSongTap != null) {
+                          widget.onSongTap!(widget.songs, originalIndex);
+                        } else {
+                          // fallback: gọi trực tiếp player (khuyến khích dùng callback)
+                          final player = Provider.of<PlayerProvider>(context, listen: false);
+                          player.setPlaylist(widget.songs, startIndex: originalIndex);
+                        }
+                      },
+                      child: SongItem(
+                        title: song.title,
+                        artist: song.artist,
+                        image: song.thumbnail,
+                        songId: song.id,
+                      ),
                     );
                   },
                 ),

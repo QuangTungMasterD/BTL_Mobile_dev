@@ -7,7 +7,8 @@ import 'package:btl_music_app/core/providers/auth_provider.dart';
 
 class PlayerControls extends StatelessWidget {
   final SongModel song;
-  final String Function(Duration) formatDuration; // callback để format thời gian
+  final String Function(Duration)
+  formatDuration; // callback để format thời gian
 
   const PlayerControls({
     super.key,
@@ -27,7 +28,10 @@ class PlayerControls extends StatelessWidget {
         child: Column(
           children: [
             Slider(
-              value: player.position.inMilliseconds.toDouble(),
+              value: player.position.inMilliseconds.toDouble().clamp(
+                0.0,
+                player.duration.inMilliseconds.toDouble(),
+              ),
               min: 0,
               max: player.duration.inMilliseconds.toDouble(),
               activeColor: Colors.white,
@@ -60,10 +64,12 @@ class PlayerControls extends StatelessWidget {
                   children: [
                     const Icon(Icons.shuffle, color: Colors.purple, size: 24),
                     IconButton(
-                      icon: const Icon(Icons.skip_previous, color: Colors.white, size: 32),
-                      onPressed: () {
-                        // TODO: chuyển bài trước
-                      },
+                      icon: const Icon(
+                        Icons.skip_previous,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                      onPressed: player.previous,
                     ),
                     CircleAvatar(
                       radius: 32,
@@ -78,20 +84,23 @@ class PlayerControls extends StatelessWidget {
                           if (player.isPlaying) {
                             player.pause();
                           } else {
+                            // Nếu có bài hiện tại thì resume, nếu không có thì không làm gì
                             if (player.currentSong != null) {
                               player.resume();
                             } else {
-                              player.playSong(song);
+                              // Có thể hiển thị thông báo chưa có bài
                             }
                           }
                         },
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.skip_next, color: Colors.white, size: 32),
-                      onPressed: () {
-                        // TODO: chuyển bài tiếp theo
-                      },
+                      icon: const Icon(
+                        Icons.skip_next,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                      onPressed: player.next,
                     ),
                     const Icon(Icons.repeat, color: Colors.white, size: 24),
                   ],
@@ -103,15 +112,16 @@ class PlayerControls extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.comment_outlined, color: Colors.white70),
+                        icon: const Icon(
+                          Icons.comment_outlined,
+                          color: Colors.white70,
+                        ),
                         onPressed: () {
                           showModalBottomSheet(
                             context: context,
                             isScrollControlled: true,
                             backgroundColor: Colors.transparent,
-                            builder: (_) => CommentSheet(
-                              songId: song.id,
-                            ),
+                            builder: (_) => CommentSheet(songId: song.id),
                           );
                         },
                       ),
