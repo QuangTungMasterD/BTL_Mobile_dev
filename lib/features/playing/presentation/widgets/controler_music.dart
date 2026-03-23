@@ -78,7 +78,11 @@ class PlayerControls extends StatelessWidget {
                           if (player.isPlaying) {
                             player.pause();
                           } else {
-                            player.resume();
+                            if (player.currentSong != null) {
+                              player.resume();
+                            } else {
+                              player.playSong(song);
+                            }
                           }
                         },
                       ),

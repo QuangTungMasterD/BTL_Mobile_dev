@@ -14,8 +14,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   just_audio: ^0.9.38
   just_audio_background: ^0.0.1-beta.10
-  youtube_explode_dart: ^2.0.3
   audio_video_progress_bar: ^2.0.1
+  youtube_explode_dart: ^2.0.3
   dio: ^5.9.1
   path_provider: ^2.1.4
   flutter_bloc: ^9.1.1
@@ -32,49 +32,10 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-
-
-
-
-
   flutter_lints: ^6.0.0
 
 
 flutter:
-
-
-
-
   uses-material-design: true
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  #
-
-
+  assets:
+    - assets/audio/

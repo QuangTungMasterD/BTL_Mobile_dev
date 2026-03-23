@@ -1,34 +1,34 @@
 import 'dart:async';
 import 'package:btl_music_app/features/playing/data/repo/player_repo.dart';
-import 'package:btl_music_app/features/playing/data/services/player_service.dart';
 import 'package:flutter/material.dart';
 import 'package:btl_music_app/features/music/data/models/song_model.dart';
 import 'package:btl_music_app/core/providers/song_provider.dart';
+import 'package:btl_music_app/features/playing/data/services/player_service.dart';
 
 class PlayerProvider extends ChangeNotifier {
   final PlayerRepository _repo;
   final SongProvider _songProvider;
 
   SongModel? _currentSong;
-  PlayerState _state = PlayerState.stopped;
+  PlayerStateCustom _state = PlayerStateCustom.stopped;
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
 
-  StreamSubscription<PlayerState>? _stateSub;
+  StreamSubscription<PlayerStateCustom>? _stateSub;
   StreamSubscription<Duration>? _positionSub;
+  StreamSubscription<Duration>? _durationSub;
 
   SongModel? get currentSong => _currentSong;
-  PlayerState get state => _state;
+  PlayerStateCustom get state => _state;
   Duration get position => _position;
   Duration get duration => _duration;
-  bool get isPlaying => _state == PlayerState.playing;
+  bool get isPlaying => _state == PlayerStateCustom.playing;
 
   PlayerProvider(this._repo, this._songProvider) {
     _init();
   }
 
   Future<void> _init() async {
-    
     _stateSub = _repo.stateStream.listen((newState) {
       _state = newState;
       notifyListeners();
@@ -36,6 +36,11 @@ class PlayerProvider extends ChangeNotifier {
 
     _positionSub = _repo.positionStream.listen((newPos) {
       _position = newPos;
+      notifyListeners();
+    });
+
+    _durationSub = _repo.durationStream.listen((dur) {
+      _duration = dur;
       notifyListeners();
     });
 
@@ -48,18 +53,16 @@ class PlayerProvider extends ChangeNotifier {
 
     final songId = saved['songId'] as String;
     final song = await _songProvider.getSongById(songId);
+
     if (song != null) {
       _currentSong = song;
-      _duration = Duration(milliseconds: saved['duration'] ?? 0);
-      _position = Duration(milliseconds: saved['position'] ?? 0);
+
       final isPlaying = saved['isPlaying'] as bool? ?? false;
-      _state = isPlaying ? PlayerState.playing : PlayerState.paused;
-      _repo.setDuration(_duration);
+
       if (isPlaying) {
-        _repo.play(song.audio ?? '');
-      } else {
-        _repo.stop();
+        await _repo.play(song.audio ?? '');
       }
+
       notifyListeners();
     } else {
       await _repo.clearState();
@@ -69,56 +72,45 @@ class PlayerProvider extends ChangeNotifier {
   Future<void> _persistState() async {
     await _repo.saveState(
       _currentSong?.id,
-      _state == PlayerState.playing,
+      _state == PlayerStateCustom.playing,
       _position.inMilliseconds,
       _duration.inMilliseconds,
     );
   }
 
-  
+  /// 🎧 PLAY SONG
   Future<void> playSong(SongModel song) async {
     _currentSong = song;
-    _duration = Duration(seconds: song.duration ?? 0);
-    _position = Duration.zero;
-    _state = PlayerState.playing;
-    _repo.setDuration(_duration);
-    _repo.play(song.audio ?? '');
+
+    await _repo.play(song.audio ?? '');
+
     notifyListeners();
     await _persistState();
   }
 
-  void pause() {
-    if (_state == PlayerState.playing) {
-      _repo.pause();
-      
-      _state = PlayerState.paused;
-      notifyListeners();
-      _persistState();
-    }
+  Future<void> pause() async {
+    await _repo.pause();
+    await _persistState();
   }
 
-  void resume() {
-    if (_state == PlayerState.paused) {
-      _repo.resume();
-      _state = PlayerState.playing;
-      notifyListeners();
-      _persistState();
-    }
+  Future<void> resume() async {
+    await _repo.resume();
+    await _persistState();
   }
 
-  void stop() {
-    _repo.stop();
+  Future<void> stop() async {
+    await _repo.stop();
+
     _currentSong = null;
     _position = Duration.zero;
     _duration = Duration.zero;
+
     notifyListeners();
-    _persistState();
+    await _persistState();
   }
 
   Future<void> seek(Duration newPosition) async {
-    if (_currentSong == null) return;
-    _repo.seek(newPosition);
-    
+    await _repo.seek(newPosition);
     await _persistState();
   }
 
@@ -126,6 +118,7 @@ class PlayerProvider extends ChangeNotifier {
   void dispose() {
     _stateSub?.cancel();
     _positionSub?.cancel();
+    _durationSub?.cancel();
     _repo.dispose();
     super.dispose();
   }

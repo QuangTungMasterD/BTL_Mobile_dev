@@ -12,7 +12,7 @@ class PlayingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const SizedBox(height: 60),
+        const SizedBox(height: 30),
 
         /// ALBUM
         Container(
@@ -48,7 +48,7 @@ class PlayingPage extends StatelessWidget {
           ),
         ),
 
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
 
         /// Nút thích (lấy từ LoveListProvider)
         Consumer<LoveListProvider>(

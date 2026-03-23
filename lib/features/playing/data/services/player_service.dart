@@ -1,64 +1,91 @@
-// features/playing/data/services/player_service.dart
 import 'dart:async';
+import 'dart:io';
+import 'package:just_audio/just_audio.dart';
+import 'package:path_provider/path_provider.dart';
 
-enum PlayerState { stopped, playing, paused }
+enum PlayerStateCustom { stopped, playing, paused }
 
 class PlayerService {
-  PlayerState _state = PlayerState.stopped;
-  Duration _position = Duration.zero;
-  Duration _duration = Duration.zero;
-  final _stateController = StreamController<PlayerState>.broadcast();
+  final AudioPlayer _player = AudioPlayer();
+
+  PlayerStateCustom _state = PlayerStateCustom.stopped;
+
+  final _stateController = StreamController<PlayerStateCustom>.broadcast();
   final _positionController = StreamController<Duration>.broadcast();
+  final _durationController = StreamController<Duration>.broadcast();
 
-  Stream<PlayerState> get stateStream => _stateController.stream;
+  Stream<PlayerStateCustom> get stateStream => _stateController.stream;
   Stream<Duration> get positionStream => _positionController.stream;
-  PlayerState get currentState => _state;
-  Duration get currentPosition => _position;
-  Duration get currentDuration => _duration;
+  Stream<Duration> get durationStream => _durationController.stream;
 
-  // Không thực sự phát nhạc, chỉ cập nhật trạng thái
-  void play(String url) {
-    // Giả sử bài hát có duration 180s (lấy từ metadata sau)
-    _state = PlayerState.playing;
-    _stateController.add(_state);
-    // Không chạy timer, position chỉ thay đổi khi người dùng seek
-  }
+  PlayerStateCustom get currentState => _state;
 
-  void pause() {
-    if (_state == PlayerState.playing) {
-      _state = PlayerState.paused;
-      _stateController.add(_state);
+  Future<void> clearJustAudioCache() async {
+    try {
+      final cacheDir = await getTemporaryDirectory();
+      final justAudioCacheDir = Directory('${cacheDir.path}/just_audio_cache');
+      if (await justAudioCacheDir.exists()) {
+        await justAudioCacheDir.delete(recursive: true);
+        print('Đã xóa just_audio_cache cũ');
+      }
+    } catch (e) {
+      print('Lỗi khi xóa cache: $e');
     }
   }
 
-  void resume() {
-    if (_state == PlayerState.paused) {
-      _state = PlayerState.playing;
+  PlayerService() {
+    // listen position
+    _player.positionStream.listen((pos) {
+      _positionController.add(pos);
+    });
+
+    // listen duration
+    _player.durationStream.listen((dur) {
+      if (dur != null) {
+        _durationController.add(dur);
+      }
+    });
+
+    // listen state
+    _player.playerStateStream.listen((playerState) {
+      if (playerState.playing) {
+        _state = PlayerStateCustom.playing;
+      } else if (playerState.processingState == ProcessingState.completed) {
+        _state = PlayerStateCustom.stopped;
+      } else {
+        _state = PlayerStateCustom.paused;
+      }
       _stateController.add(_state);
-    }
+    });
   }
 
-  void stop() {
-    _state = PlayerState.stopped;
-    _position = Duration.zero;
-    _stateController.add(_state);
-    _positionController.add(_position);
+  /// 🔥 PLAY LOCAL AUDIO
+  Future<void> play(String assetPath) async {
+    await clearJustAudioCache();
+    await _player.setAsset(assetPath); // load file
+    await _player.play();
   }
 
-  void seek(Duration newPosition) {
-    if (newPosition < Duration.zero) newPosition = Duration.zero;
-    if (newPosition > _duration) newPosition = _duration;
-    _position = newPosition;
-    _positionController.add(_position);
+  Future<void> pause() async {
+    await _player.pause();
   }
 
-  // Cập nhật duration khi có bài hát mới
-  void setDuration(Duration duration) {
-    _duration = duration;
+  Future<void> resume() async {
+    await _player.play();
+  }
+
+  Future<void> stop() async {
+    await _player.stop();
+  }
+
+  Future<void> seek(Duration position) async {
+    await _player.seek(position);
   }
 
   void dispose() {
+    _player.dispose();
     _stateController.close();
     _positionController.close();
+    _durationController.close();
   }
 }
