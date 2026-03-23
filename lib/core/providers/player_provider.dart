@@ -10,6 +10,16 @@ class PlayerProvider extends ChangeNotifier {
   final SongProvider _songProvider;
 
   SongModel? _currentSong;
+
+  List<SongModel> _playlist = [];
+  int _currentIndex = -1;
+
+  List<SongModel> get playlist => _playlist;
+  int get currentIndex => _currentIndex;
+
+  List<SongModel> _history = [];
+  int _historyIndex = -1;
+
   PlayerStateCustom _state = PlayerStateCustom.stopped;
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
@@ -54,22 +64,30 @@ class PlayerProvider extends ChangeNotifier {
     await _restoreState();
   }
 
-  List<SongModel> _playlist = [];
-  int _currentIndex = -1;
-
-  List<SongModel> get playlist => _playlist;
-  int get currentIndex => _currentIndex;
-
   // Thêm phương thức thiết lập playlist và bắt đầu phát
   void setPlaylist(List<SongModel> playlist, {int startIndex = 0}) {
     _playlist = playlist;
+    _history = [];
     if (playlist.isNotEmpty && startIndex >= 0 && startIndex < playlist.length) {
       _currentIndex = startIndex;
-      playSong(playlist[_currentIndex]);
+      final song = playlist[_currentIndex];
+      _addToHistory(song);
+      playSong(song);
     } else {
       _currentIndex = -1;
     }
     notifyListeners();
+  }
+
+  void _addToHistory(SongModel song) {
+    // Nếu bài hiện tại trùng với bài cuối trong history thì không thêm
+    if (_history.isNotEmpty && _history.last.id == song.id) return;
+    // Nếu đang ở giữa history (khi người dùng back) thì cắt bỏ phần sau
+    if (_historyIndex >= 0 && _historyIndex < _history.length - 1) {
+      _history = _history.sublist(0, _historyIndex + 1);
+    }
+    _history.add(song);
+    _historyIndex = _history.length - 1;
   }
 
   Future<void> next() async {
@@ -82,16 +100,13 @@ class PlayerProvider extends ChangeNotifier {
     await playSong(_playlist[_currentIndex]);
   }
 
-  // Phát bài trước đó
   Future<void> previous() async {
-    if (_playlist.isEmpty) return;
-    int prevIndex = _currentIndex - 1;
-    if (prevIndex < 0) {
-      // Nếu đang ở đầu playlist, có thể không làm gì
-      return;
+    if (_historyIndex > 0 && _position <= const Duration(seconds: 10)) {
+      _historyIndex--;
+      final previousSong = _history[_historyIndex];
+      await playSong(previousSong);
     }
-    _currentIndex = prevIndex;
-    await playSong(_playlist[_currentIndex]);
+    await seek(Duration.zero);
   }
 
   Future<void> _restoreState() async {
@@ -107,7 +122,7 @@ class PlayerProvider extends ChangeNotifier {
       final isPlaying = saved['isPlaying'] as bool? ?? false;
 
       if (isPlaying) {
-        await _repo.play(song.audio ?? '');
+        await _repo.play(song.audio);
       }
 
       notifyListeners();
@@ -133,7 +148,8 @@ class PlayerProvider extends ChangeNotifier {
       _currentIndex = index;
     }
     _currentSong = song;
-    await _repo.play(song.audio ?? '');
+    _addToHistory(song);
+    await _repo.play(song.audio);
     notifyListeners();
     await _persistState();
   }
