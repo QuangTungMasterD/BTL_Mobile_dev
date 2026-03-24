@@ -11,6 +11,7 @@ class PlayerRepository {
 
 
   // 🎧 Player controls
+  Future<void> load(String path) => _playerService.load(path);
   Future<void> play(String path) => _playerService.play(path);
   Future<void> pause() => _playerService.pause();
   Future<void> resume() => _playerService.resume();

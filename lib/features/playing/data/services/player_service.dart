@@ -64,10 +64,14 @@ class PlayerService {
     });
   }
 
+  Future<void> load(String assetPath) async {
+    await _player.setAsset(assetPath);
+  }
+
   /// 🔥 PLAY LOCAL AUDIO
   Future<void> play(String assetPath) async {
     // await clearJustAudioCache();
-    await _player.setAsset(assetPath); // load file
+    await this.load(assetPath); // load file
     await _player.play();
   }
 

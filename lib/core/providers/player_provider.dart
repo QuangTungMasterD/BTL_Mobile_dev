@@ -164,10 +164,15 @@ class PlayerProvider extends ChangeNotifier {
     if (song != null) {
       _currentSong = song;
 
+      await _repo.load(song.audio);
+
       final isPlaying = saved['isPlaying'] as bool? ?? false;
 
       if (isPlaying) {
         await _repo.play(song.audio);
+        _playingBloc.add(SetPlaybackState(true));
+      } else {
+        _playingBloc.add(SetPlaybackState(false));
       }
 
       notifyListeners();
