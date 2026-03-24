@@ -64,8 +64,16 @@ class PlayerService {
     });
   }
 
-  Future<void> load(String assetPath) async {
-    await _player.setAsset(assetPath);
+  bool _isNetworkUrl(String path) {
+  return path.startsWith('http://') || path.startsWith('https://');
+  }
+
+  Future<void> load(String path) async {
+    if (_isNetworkUrl(path)) {
+      await _player.setUrl(path);
+    } else {
+      await _player.setAsset(path);
+    }
   }
 
   /// 🔥 PLAY LOCAL AUDIO
