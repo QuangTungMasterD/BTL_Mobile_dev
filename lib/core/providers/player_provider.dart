@@ -89,9 +89,9 @@ class PlayerProvider extends ChangeNotifier {
     _history = [];
     if (playlist.isNotEmpty && startIndex >= 0 && startIndex < playlist.length) {
       _currentIndex = startIndex;
-      final song = playlist[_currentIndex];
-      _addToHistory(song);
-      playSong(song);
+      // final song = playlist[_currentIndex];
+      // _addToHistory(song);
+      // playSong(song);
     } else {
       _currentIndex = -1;
     }
