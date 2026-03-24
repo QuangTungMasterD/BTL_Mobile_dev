@@ -88,12 +88,13 @@ class PlayerProvider extends ChangeNotifier {
     _playlist = playlist;
     _history = [];
     if (playlist.isNotEmpty && startIndex >= 0 && startIndex < playlist.length) {
-      _currentIndex = startIndex;
+      int existingIndex = playlist.indexWhere((song) => song.id == _currentSong!.id);
+      _currentIndex = existingIndex;
       // final song = playlist[_currentIndex];
       // _addToHistory(song);
       // playSong(song);
     } else {
-      _currentIndex = -1;
+      _currentIndex = startIndex >= 0 && startIndex < playlist.length ? startIndex : -1;
     }
     notifyListeners();
   }

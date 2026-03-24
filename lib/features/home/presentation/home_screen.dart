@@ -1,4 +1,5 @@
 import 'package:btl_music_app/core/providers/artist_provider.dart';
+import 'package:btl_music_app/core/providers/player_provider.dart';
 import 'package:btl_music_app/core/providers/song_provider.dart';
 import 'package:btl_music_app/core/providers/user_provider.dart';
 import 'package:btl_music_app/core/widgets/bottom.dart';
@@ -36,7 +37,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadRecommendations() async {
     setState(() => _isLoadingRecs = true);
     final provider = context.read<SongProvider>();
+    final playerProvider = context.read<PlayerProvider>();
+    
     final songs = await provider.getRecommendationsByGenre(limit: 6);
+    playerProvider.setPlaylist(songs, startIndex: 0);
+
+
     if (mounted) {
       setState(() {
         _recommendations = songs;
