@@ -37,11 +37,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadRecommendations() async {
     setState(() => _isLoadingRecs = true);
     final provider = context.read<SongProvider>();
-    final playerProvider = context.read<PlayerProvider>();
-    
-    final songs = await provider.getRecommendationsByGenre(limit: 6);
-    playerProvider.setPlaylist(songs, startIndex: 0);
+    final songs = await provider.getRecommendationsByGenre();
 
+    final playerProvider = context.read<PlayerProvider>();
+    if(playerProvider.playlist.isEmpty) {
+      playerProvider.setPlaylist(songs);
+    }
 
     if (mounted) {
       setState(() {
@@ -105,14 +106,13 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            ..._recommendations.map(
-                              (song) => SongItem(
+                            for (var song in _recommendations.take(6))
+                              SongItem(
                                 songId: song.id,
                                 title: song.title,
                                 artist: song.artist,
                                 image: song.thumbnail,
                               ),
-                            ),
                             const SizedBox(height: 30),
                           ],
                         ),

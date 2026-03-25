@@ -59,10 +59,10 @@ class ChartScreen extends StatelessWidget {
                   child: BlocListener<TopBloc, TopState>(
                     listener: (context, state) {
                       // Khi tải xong và có dữ liệu, set playlist
-                      if (!state.isLoading && state.topSongs.isNotEmpty) {
-                        final player = context.read<PlayerProvider>();
-                        player.setPlaylist(state.topSongs, startIndex: 0);
-                      }
+                      // if (!state.isLoading && state.topSongs.isNotEmpty) {
+                      //   final player = context.read<PlayerProvider>();
+                      //   player.setPlaylist(state.topSongs, startIndex: 0);
+                      // }
                     },
                     child: BlocBuilder<TopBloc, TopState>(
                       builder: (context, state) {
@@ -101,6 +101,21 @@ class ChartScreen extends StatelessWidget {
                                 song: song,
                                 rank: index + 1,
                                 songId: song.id,
+                                onTap: () {
+                                  final player = context.read<PlayerProvider>();
+                                  player.setPlaylist(state.topSongs);
+                                  player.playSong(song);
+
+                                  bool found = false;
+                                  Navigator.popUntil(context, (route) {
+                                    if (route.settings.name == '/playing')
+                                      found = true;
+                                    return true;
+                                  });
+                                  if (!found) {
+                                    Navigator.pushNamed(context, '/playing');
+                                  }
+                                },
                               );
                             }).toList(),
                           ],

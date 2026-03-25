@@ -90,9 +90,6 @@ class PlayerProvider extends ChangeNotifier {
     if (playlist.isNotEmpty && startIndex >= 0 && startIndex < playlist.length) {
       int existingIndex = playlist.indexWhere((song) => song.id == _currentSong!.id);
       _currentIndex = existingIndex;
-      // final song = playlist[_currentIndex];
-      // _addToHistory(song);
-      // playSong(song);
     } else {
       _currentIndex = startIndex >= 0 && startIndex < playlist.length ? startIndex : -1;
     }
@@ -193,7 +190,9 @@ class PlayerProvider extends ChangeNotifier {
 
   /// 🎧 PLAY SONG
   Future<void> playSong(SongModel song) async {
-    int index = _playlist.indexOf(song);
+    int index = _playlist.indexWhere((s) => s.id == song.id);
+    print(_playlist[0].id + song.id);
+    print('$index ===============================================================');
     if (index != -1) {
       _currentIndex = index;
     }

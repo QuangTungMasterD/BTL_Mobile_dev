@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 class ChartItem extends StatelessWidget {
   final SongModel song;
   final int rank;
+  final VoidCallback? onTap;
   final String songId; // Thêm songId
 
   const ChartItem({
@@ -15,6 +16,7 @@ class ChartItem extends StatelessWidget {
     required this.song,
     required this.rank,
     required this.songId, // bắt buộc
+    this.onTap
   });
 
   @override
@@ -22,20 +24,7 @@ class ChartItem extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: InkWell(
-        onTap: () {
-          final player = context.read<PlayerProvider>();
-          player.playSong(song); // cập nhật bài hát hiện tại
-
-          // Kiểm tra và điều hướng (tương tự mini player)
-          bool found = false;
-          Navigator.popUntil(context, (route) {
-            if (route.settings.name == '/playing') found = true;
-            return true;
-          });
-          if (!found) {
-            Navigator.pushNamed(context, '/playing');
-          }
-        },
+        onTap: onTap,
         child: Row(
           children: [
             /// RANK

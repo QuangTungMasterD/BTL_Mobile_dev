@@ -93,11 +93,11 @@ class SongProvider extends ChangeNotifier {
   }
 
   Future<List<SongModel>> getRecommendationsByGenre({
-    int limit = 10,
+    int? limit,
     String? genre,
   }) async {
     try {
-      final songs = await _repo.getTopSongs(limit: limit);
+      final songs = limit != null ? await _repo.getTopSongs(limit: limit) : await _repo.getTopSongs();
       for (var song in songs) {
         _cache[song.id] = song;
       }
